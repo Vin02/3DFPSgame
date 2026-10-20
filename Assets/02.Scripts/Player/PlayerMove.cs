@@ -3,7 +3,11 @@ using UnityEngine;
 public class PlayerMove : MonoBehaviour
 {
     private const float Gravity = -20f;
+    private const int MaxJumps = 2;
+    private const float MaxStamina = 100f;
     private float _yVelocity = 0f;
+    private int _jumpCount = 0;
+    private float _stamina = 100f;
     [SerializeField] private float _moveSpeed = 7f;
     [SerializeField] private float _sprintSpeed = 5f;
     [SerializeField] private float _jumpPower = 10f;
@@ -38,13 +42,15 @@ public class PlayerMove : MonoBehaviour
 
         else
         {
-            _yVelocity = 0f;
+            _yVelocity = -1f;
+            _jumpCount = 0;
         }
 
         // 만약 점프 키를 누르면 점프한다
-        if (Input.GetButtonDown("Jump") && _characterController.isGrounded)
+        if (Input.GetButtonDown("Jump") && _jumpCount < MaxJumps)
         {
             _yVelocity = _jumpPower;
+            _jumpCount++;
         }
 
         // 속도를 구하기
