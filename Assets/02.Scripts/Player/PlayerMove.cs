@@ -5,9 +5,17 @@ public class PlayerMove : MonoBehaviour
     private const float Gravity = -20f;
     private float _yVelocity = 0f;
     [SerializeField] private float _moveSpeed = 7f;
+    [SerializeField] private float _sprintSpeed = 5f;
     [SerializeField] private float _jumpPower = 10f;
     [SerializeField] private CharacterController _characterController;
 
+    private void Awake()
+    {
+        if (_characterController == null)
+        {
+            _characterController = GetComponent<CharacterController>();
+        }
+    }
 
     private void Update()
     {
@@ -41,7 +49,8 @@ public class PlayerMove : MonoBehaviour
 
         // 속도를 구하기
 
-        Vector3 velocity = direction * _moveSpeed;
+        float currentSpeed = Input.GetButton("Sprint") ? _moveSpeed + _sprintSpeed : _moveSpeed;
+        Vector3 velocity = direction * currentSpeed;
         velocity.y = _yVelocity;
         // 방향과 속력을 곱해서 이동한다.
         // transform.position += direction * _moveSpeed * Time.deltaTime;
