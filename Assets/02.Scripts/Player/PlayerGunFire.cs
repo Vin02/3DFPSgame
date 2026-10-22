@@ -38,6 +38,11 @@ public class PlayerGunFire : MonoBehaviour
             effect.transform.position = hitInfo.point;
             effect.transform.forward = hitInfo.normal;
             effect.Play();
+
+            if (hitInfo.collider.TryGetComponent(out Zombie zombie))
+            {
+                zombie.TakeDamage(_damage);
+            }
         }
     }
 }
