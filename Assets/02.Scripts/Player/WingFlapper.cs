@@ -46,12 +46,23 @@ public class WingFlapper : MonoBehaviour
             return;
         }
 
+        CreateWings();
+    }
+
+    private void CreateWings()
+    {
         _left = new FlappingWing(_leftWing);
         _right = new FlappingWing(_rightWing);
     }
 
     private void Update()
     {
+        // Play 중 스크립트가 재컴파일되면 직렬화되지 않는 필드가 비므로 다시 만든다.
+        if (_left == null || _right == null)
+        {
+            CreateWings();
+        }
+
         UpdateFlapStrength();
         UpdatePhase();
 
