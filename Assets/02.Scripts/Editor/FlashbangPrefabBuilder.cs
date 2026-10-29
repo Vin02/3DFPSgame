@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-// 섬광탄 프리팹을 만들고 플레이어의 PlayerFlashbangThrow에 연결한다.
+// 섬광탄 프리팹을 만든다. (지금 던지는 수류탄은 행성이다: Tools > Weapons > Build Planet Grenades. 이 프리팹은 쓰지 않는다)
 // 올리브색 금속 깡통 + 불이 붙으면 빛나는 흰 띠 + 안전 손잡이. 포인트 라이트가 주변을 밝힌다.
 // 이름으로 찾아 갱신하므로 다시 실행해도 중복되지 않는다. 씬 파일은 저장하지 않는다.
 public static class FlashbangPrefabBuilder
@@ -65,7 +65,6 @@ public static class FlashbangPrefabBuilder
 
             EnsureFolder("Assets/03.Prefabs/Weapons");
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
-            AssignToPlayer(prefab.GetComponent<FlashbangProjectile>());
         }
         finally
         {
@@ -74,21 +73,6 @@ public static class FlashbangPrefabBuilder
 
         AssetDatabase.SaveAssets();
         Debug.Log($"섬광탄 프리팹을 만들었습니다: {PrefabPath}");
-    }
-
-    private static void AssignToPlayer(FlashbangProjectile prefab)
-    {
-        PlayerFlashbangThrow thrower = Object.FindFirstObjectByType<PlayerFlashbangThrow>();
-        if (thrower == null)
-        {
-            Debug.LogWarning("씬에서 PlayerFlashbangThrow를 찾지 못해 프리팹을 연결하지 않았습니다.");
-            return;
-        }
-
-        var serialized = new SerializedObject(thrower);
-        serialized.FindProperty("_flashbangPrefab").objectReferenceValue = prefab;
-        serialized.ApplyModifiedProperties();
-        EditorSceneManager.MarkSceneDirty(thrower.gameObject.scene);
     }
 
     // 서브메시 0 = 깡통·뚜껑·손잡이, 1 = 빛나는 띠. 중심이 원점이고 세로로 서 있다.

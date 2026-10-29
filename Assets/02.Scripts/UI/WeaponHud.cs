@@ -15,6 +15,8 @@ public class WeaponHud : MonoBehaviour
     [SerializeField] private Text _ammoText;
     [SerializeField] private Text _bombText;
     [SerializeField] private Text _reloadText;
+    [Tooltip("다음에 던질 수류탄 이름, 다 던졌으면 장전 안내")]
+    [SerializeField] private Text _grenadeText;
 
     [Header("Weapon Sprites")]
     [SerializeField] private Sprite _normalWeaponSprite;
@@ -40,6 +42,7 @@ public class WeaponHud : MonoBehaviour
         _gun.AmmoChanged += OnAmmoChanged;
         _gun.ReloadingChanged += OnReloadingChanged;
         _flashbang.BombsChanged += OnBombsChanged;
+        _flashbang.ReloadingChanged += OnGrenadeReloadingChanged;
 
         // 다시 켜졌을 때는 꺼져 있는 동안 놓친 값을 바로 그린다.
         if (_started)
@@ -61,6 +64,7 @@ public class WeaponHud : MonoBehaviour
         _gun.AmmoChanged -= OnAmmoChanged;
         _gun.ReloadingChanged -= OnReloadingChanged;
         _flashbang.BombsChanged -= OnBombsChanged;
+        _flashbang.ReloadingChanged -= OnGrenadeReloadingChanged;
     }
 
     private void Refresh()
@@ -94,5 +98,35 @@ public class WeaponHud : MonoBehaviour
     {
         _bombText.text = $"x {bombs}";
         _bombText.color = bombs <= 0 ? LowAmmoColor : Color.white;
+        UpdateGrenadeText();
+    }
+
+    private void OnGrenadeReloadingChanged(bool reloading)
+    {
+        UpdateGrenadeText();
+    }
+
+    private void UpdateGrenadeText()
+    {
+        if (_grenadeText == null)
+        {
+            return;
+        }
+
+        if (_flashbang.IsReloading)
+        {
+            _grenadeText.text = "RELOADING...";
+            _grenadeText.color = new Color(1f, 0.8f, 0.3f);
+        }
+        else if (_flashbang.Bombs <= 0)
+        {
+            _grenadeText.text = "[G] RELOAD";
+            _grenadeText.color = LowAmmoColor;
+        }
+        else
+        {
+            _grenadeText.text = _flashbang.NextName;
+            _grenadeText.color = Color.white;
+        }
     }
 }

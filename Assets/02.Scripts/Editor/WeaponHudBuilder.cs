@@ -70,6 +70,9 @@ public static class WeaponHudBuilder
         Image weaponImage = CreateImage(hud, "WeaponIcon", normalWeapon);
         Place(weaponImage.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 170f), new Vector2(260f, 86f));
 
+        Text grenadeText = CreateText(hud, "GrenadeText", 26, TextAnchor.LowerRight, Color.white);
+        Place(grenadeText.rectTransform, new Vector2(1f, 0f), new Vector2(-245f, 36f), new Vector2(320f, 44f));
+
         Text reloadText = CreateText(hud, "ReloadText", 22, TextAnchor.LowerRight, new Color(1f, 0.8f, 0.3f));
         Place(reloadText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 262f), new Vector2(400f, 34f));
         reloadText.text = "RELOADING...";
@@ -83,6 +86,7 @@ public static class WeaponHudBuilder
         serialized.FindProperty("_ammoText").objectReferenceValue = ammoText;
         serialized.FindProperty("_bombText").objectReferenceValue = bombText;
         serialized.FindProperty("_reloadText").objectReferenceValue = reloadText;
+        serialized.FindProperty("_grenadeText").objectReferenceValue = grenadeText;
         serialized.FindProperty("_normalWeaponSprite").objectReferenceValue = normalWeapon;
         serialized.FindProperty("_sniperWeaponSprite").objectReferenceValue = sniperWeapon;
         serialized.ApplyModifiedProperties();

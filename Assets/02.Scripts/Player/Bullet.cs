@@ -136,6 +136,12 @@ public class Bullet : MonoBehaviour
             colossus.TakeDamage(_damage, hit.point);
         }
 
+        BlackHole blackHole = hit.collider.GetComponentInParent<BlackHole>();
+        if (blackHole != null)
+        {
+            blackHole.Damage(_damage);
+        }
+
         Drum drum = hit.collider.GetComponentInParent<Drum>();
         if (drum != null)
         {

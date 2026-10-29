@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
-// 마우스 오른쪽 버튼을 누르고 있으면 힘을 모으고, 떼면 바라보는 방향으로 섬광탄을 던진다. 오래 누를수록 멀리 날아간다.
-// 섬광탄 개수는 한정되어 있고, 남은 개수가 바뀌면 이벤트로 알린다. (UI가 구독)
-// 섬광탄은 부딪히면 불이 붙어 잠시 동안 주변을 환하게 밝힌다. (주변 좀비에게 피해도 준다. 동작은 FlashbangProjectile이 맡는다)
+// 마우스 오른쪽 버튼을 누르고 있으면 힘을 모으고, 떼면 바라보는 방향으로 수류탄(행성)을 던진다. 오래 누를수록 멀리 날아간다.
+// 수류탄은 정해진 순서(태양 → 수성 → … → 해왕성)로 한 개씩 나가고, 다 던져야만 장전 키로 다시 채울 수 있다.
+// 남은 개수와 장전 상태가 바뀌면 이벤트로 알린다. (UI가 구독)
+// 던져진 수류탄의 동작(불이 붙어 밝히고 주변 좀비에게 피해)은 FlashbangProjectile이 맡는다.
 public class PlayerFlashbangThrow : MonoBehaviour
 {
-    [FormerlySerializedAs("_eggPrefab")]
-    [SerializeField] private FlashbangProjectile _flashbangPrefab;
+    [Tooltip("던지는 순서대로. 개수는 Max Bombs와 같아야 한다. (Tools > Weapons > Build Planet Grenades)")]
+    [SerializeField] private FlashbangProjectile[] _grenadePrefabs;
     [Tooltip("던지는 팔 모션을 재생할 대상. 비워 두면 자식에서 찾는다.")]
     [SerializeField] private PlayerAnimation _playerAnimation;
 
@@ -19,27 +19,39 @@ public class PlayerFlashbangThrow : MonoBehaviour
     [SerializeField] private float _maxChargeTime = 1.5f;
     [SerializeField] private float _upwardBoost = 3f;
     [SerializeField] private float _cooldown = 1f;
-    [SerializeField] private int _maxBombs = 5;
+    [SerializeField] private int _maxBombs = 10;
+
+    [Header("장전")]
+    [Tooltip("다 던진 뒤에만 눌러서 장전한다.")]
+    [SerializeField] private KeyCode _reloadKey = KeyCode.G;
+    [SerializeField] private float _reloadTime = 2.5f;
 
     private float _cooldownTimer;
     private float _chargeTimer;
     private bool _charging;
     private bool _throwPending;
     private float _pendingCharge;
+    private int _pendingIndex;
+    private float _reloadTimer;
     private PlayerZoom _zoom;
     private int _bombs;
 
     // (남은 개수, 최대 개수)
     public event Action<int, int> BombsChanged;
+    public event Action<bool> ReloadingChanged;
 
     public int Bombs => _bombs;
     public int MaxBombs => _maxBombs;
+    public bool IsReloading => _reloadTimer > 0f;
+
+    // 다음에 던질 수류탄 이름. 다 던졌으면 빈 문자열
+    public string NextName => _bombs > 0 ? _grenadePrefabs[_maxBombs - _bombs].DisplayName : string.Empty;
 
     private void Awake()
     {
-        if (_flashbangPrefab == null)
+        if (_grenadePrefabs == null || _grenadePrefabs.Length != _maxBombs || Array.IndexOf(_grenadePrefabs, null) >= 0)
         {
-            Debug.LogError("PlayerFlashbangThrow: 섬광탄 프리팹이 연결되지 않았습니다. (Tools > Weapons > Build Flashbang)");
+            Debug.LogError("PlayerFlashbangThrow: 수류탄 프리팹이 Max Bombs 개수만큼 연결되지 않았습니다. (Tools > Weapons > Build Planet Grenades)");
             enabled = false;
             return;
         }
@@ -76,6 +88,7 @@ public class PlayerFlashbangThrow : MonoBehaviour
     private void Update()
     {
         _cooldownTimer -= Time.deltaTime;
+        UpdateReload();
 
         // 저격 모드에서는 오른쪽 버튼이 줌이므로 던지지 않는다. 모으던 중이면 취소한다.
         if (_zoom != null && _zoom.Mode == WeaponMode.Sniper)
@@ -113,19 +126,45 @@ public class PlayerFlashbangThrow : MonoBehaviour
         {
             _charging = false;
             _cooldownTimer = _cooldown;
+            int index = _maxBombs - _bombs; // 이번에 던질 수류탄의 순서
             _bombs--;
             BombsChanged?.Invoke(_bombs, _maxBombs);
 
-            // 던지기 모션에서 손을 떠나는 순간 섬광탄을 만든다. 모션을 쓸 수 없으면 바로 던진다.
+            // 던지기 모션에서 손을 떠나는 순간 수류탄을 만든다. 모션을 쓸 수 없으면 바로 던진다.
             if (_playerAnimation != null && _playerAnimation.PlayThrowSwing())
             {
                 _throwPending = true;
                 _pendingCharge = charge;
+                _pendingIndex = index;
             }
             else
             {
-                Throw(charge);
+                Throw(charge, index);
             }
+        }
+    }
+
+    // 다 던졌을 때만 장전할 수 있다. 장전이 끝나면 처음 순서(태양)부터 다시 10개.
+    private void UpdateReload()
+    {
+        if (IsReloading)
+        {
+            _reloadTimer -= Time.deltaTime;
+            if (_reloadTimer <= 0f)
+            {
+                _reloadTimer = 0f;
+                _bombs = _maxBombs;
+                BombsChanged?.Invoke(_bombs, _maxBombs);
+                ReloadingChanged?.Invoke(false);
+            }
+
+            return;
+        }
+
+        if (_bombs == 0 && !_throwPending && Input.GetKeyDown(_reloadKey))
+        {
+            _reloadTimer = _reloadTime;
+            ReloadingChanged?.Invoke(true);
         }
     }
 
@@ -137,17 +176,17 @@ public class PlayerFlashbangThrow : MonoBehaviour
         }
 
         _throwPending = false;
-        Throw(_pendingCharge);
+        Throw(_pendingCharge, _pendingIndex);
     }
 
-    private void Throw(float charge)
+    private void Throw(float charge, int index)
     {
         float throwSpeed = Mathf.Lerp(_minThrowSpeed, _maxThrowSpeed, charge);
 
         Transform cameraTransform = Camera.main.transform;
         Vector3 spawnPosition = cameraTransform.position + cameraTransform.forward;
 
-        FlashbangProjectile flashbang = Instantiate(_flashbangPrefab, spawnPosition, UnityEngine.Random.rotation);
-        flashbang.Launch(cameraTransform.forward * throwSpeed + Vector3.up * _upwardBoost);
+        FlashbangProjectile grenade = Instantiate(_grenadePrefabs[index], spawnPosition, UnityEngine.Random.rotation);
+        grenade.Launch(cameraTransform.forward * throwSpeed + Vector3.up * _upwardBoost);
     }
 }

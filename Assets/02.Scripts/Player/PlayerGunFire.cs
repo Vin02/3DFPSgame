@@ -24,6 +24,11 @@ public class PlayerGunFire : MonoBehaviour
     [Tooltip("총구가 없을 때 쓰는 카메라 기준 시작 위치 (오른쪽, 위, 앞)")]
     [FormerlySerializedAs("_tracerStartOffset")]
     [SerializeField] private Vector3 _muzzleFallbackOffset = new Vector3(0.25f, -0.2f, 0.7f);
+    [Header("총구 화염")]
+    [Tooltip("쏠 때마다 이 중 하나가 총구에 나온다.")]
+    [SerializeField] private GameObject[] _muzzleFlashPrefabs;
+    [SerializeField] private float _muzzleFlashTime = 0.06f;
+    [SerializeField] private float _sniperFlashScale = 1.8f;
     [Tooltip("조준과 총알이 맞힐 수 있는 레이어 (플레이어 자신은 빼야 한다)")]
     [SerializeField] private LayerMask _hitMask = ~0;
     [Header("Stat")]
@@ -147,6 +152,30 @@ public class PlayerGunFire : MonoBehaviour
         AmmoChanged?.Invoke(Ammo, MagazineSize);
     }
 
+    // 총구에 화염을 잠깐 띄운다. 프리팹은 스스로 사라지지만 너무 오래 남으므로 더 일찍 지운다.
+    private void ShowMuzzleFlash(Vector3 origin, Vector3 direction)
+    {
+        if (_muzzleFlashPrefabs == null || _muzzleFlashPrefabs.Length == 0)
+        {
+            return;
+        }
+
+        GameObject prefab = _muzzleFlashPrefabs[UnityEngine.Random.Range(0, _muzzleFlashPrefabs.Length)];
+        if (prefab == null)
+        {
+            return;
+        }
+
+        Quaternion rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(0f, 0f, UnityEngine.Random.Range(0f, 360f));
+        GameObject flash = Instantiate(prefab, origin, rotation, _muzzle);
+        if (IsSniper)
+        {
+            flash.transform.localScale *= _sniperFlashScale;
+        }
+
+        Destroy(flash, _muzzleFlashTime);
+    }
+
     // 화면 중앙으로 조준점을 찾고, 총구에서 그 점을 향해 총알을 쏜다.
     private void Fire()
     {
@@ -168,6 +197,8 @@ public class PlayerGunFire : MonoBehaviour
         {
             direction = cameraTransform.forward;
         }
+
+        ShowMuzzleFlash(origin, direction);
 
         PooledObject pooled = _bulletPool.Spawn(origin, Quaternion.LookRotation(direction));
         if (pooled.TryGetComponent(out Bullet bullet))
