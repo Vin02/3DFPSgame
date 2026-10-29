@@ -18,6 +18,14 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private EffectPool _bloodEffectPool;
     [Tooltip("총알 프리팹(Bullet)을 담은 풀")]
     [SerializeField] private EffectPool _bulletPool;
+    [Header("검기 (총알 대신)")]
+    [Tooltip("초록 검기 하나당 풀 하나. 비어 있으면 위의 총알을 쏜다. (Tools > Weapons > Build Sword Waves)")]
+    [SerializeField] private EffectPool[] _swordWavePools;
+    [Tooltip("한 번 쏠 때 나가는 검기 수의 범위. 이 범위에서 개수를 뽑고, 그만큼의 종류를 겹치지 않게 고른다.")]
+    [SerializeField] private int _waveCountMin = 1;
+    [SerializeField] private int _waveCountMax = 4;
+    [Tooltip("검기가 둘 이상일 때 서로 겹쳐 보이지 않도록 벌리는 최대 각도")]
+    [SerializeField] private float _waveSpreadAngle = 4f;
     [Header("Bullet")]
     [Tooltip("총구 위치. 총을 든 손 본의 자식 오브젝트")]
     [SerializeField] private Transform _muzzle;
@@ -46,6 +54,7 @@ public class PlayerGunFire : MonoBehaviour
     private int _sniperAmmo;
     private float _reloadTimer;
     private float _fireTimer;
+    private int[] _waveOrder;
 
     // (현재 총알 수, 탄창 크기)
     public event Action<int, int> AmmoChanged;
@@ -176,10 +185,11 @@ public class PlayerGunFire : MonoBehaviour
         Destroy(flash, _muzzleFlashTime);
     }
 
-    // 화면 중앙으로 조준점을 찾고, 총구에서 그 점을 향해 총알을 쏜다.
+    // 화면 중앙으로 조준점을 찾고, 총구에서 그 점을 향해 검기(없으면 총알)를 쏜다.
     private void Fire()
     {
-        if (_bulletPool == null)
+        bool useWaves = _swordWavePools != null && _swordWavePools.Length > 0;
+        if (!useWaves && _bulletPool == null)
         {
             GameLogger.LogError("PlayerGunFire에 총알 풀이 없습니다. (Tools > Weapons > Build Bullet)");
             return;
@@ -200,10 +210,66 @@ public class PlayerGunFire : MonoBehaviour
 
         ShowMuzzleFlash(origin, direction);
 
+        if (useWaves)
+        {
+            FireSwordWaves(origin, direction);
+            return;
+        }
+
         PooledObject pooled = _bulletPool.Spawn(origin, Quaternion.LookRotation(direction));
         if (pooled.TryGetComponent(out Bullet bullet))
         {
             bullet.Fire(origin, direction.normalized, IsSniper ? _sniperDamage : _damage, _hitMask, _hitEffectPool, _bloodEffectPool, IsSniper);
+        }
+    }
+
+    // 검기 종류 중 이번에 나갈 개수만큼을 겹치지 않게 무작위로 골라 한꺼번에 날린다.
+    private void FireSwordWaves(Vector3 origin, Vector3 direction)
+    {
+        int poolCount = _swordWavePools.Length;
+        int min = Mathf.Clamp(_waveCountMin, 1, poolCount);
+        int max = Mathf.Clamp(_waveCountMax, min, poolCount);
+        int count = UnityEngine.Random.Range(min, max + 1);
+
+        if (_waveOrder == null || _waveOrder.Length != poolCount)
+        {
+            _waveOrder = new int[poolCount];
+            for (int i = 0; i < poolCount; i++)
+            {
+                _waveOrder[i] = i;
+            }
+        }
+
+        Quaternion aim = Quaternion.LookRotation(direction);
+        float damage = IsSniper ? _sniperDamage : _damage;
+
+        // 부분 피셔-예이츠: 앞쪽 count개가 겹치지 않는 무작위 선택이 된다.
+        for (int i = 0; i < count; i++)
+        {
+            int pick = UnityEngine.Random.Range(i, poolCount);
+            (_waveOrder[i], _waveOrder[pick]) = (_waveOrder[pick], _waveOrder[i]);
+
+            EffectPool pool = _swordWavePools[_waveOrder[i]];
+            if (pool == null)
+            {
+                continue;
+            }
+
+            Quaternion rotation = aim;
+            if (count > 1)
+            {
+                rotation *= Quaternion.Euler(
+                    UnityEngine.Random.Range(-_waveSpreadAngle, _waveSpreadAngle),
+                    UnityEngine.Random.Range(-_waveSpreadAngle, _waveSpreadAngle),
+                    0f);
+            }
+
+            Vector3 waveDirection = rotation * Vector3.forward;
+            PooledObject pooled = pool.Spawn(origin, rotation);
+            if (pooled.TryGetComponent(out Bullet wave))
+            {
+                wave.Fire(origin, waveDirection, damage, _hitMask, _hitEffectPool, _bloodEffectPool);
+            }
         }
     }
 }

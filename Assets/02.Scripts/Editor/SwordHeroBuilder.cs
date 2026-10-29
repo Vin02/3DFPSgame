@@ -26,7 +26,10 @@ public static class SwordHeroBuilder
     private const string ControllerPath = "Assets/07.Animations/SwordLocomotion.controller";
 
     private const string IdleClipName = "battle stance";
-    private const string AttackClipName = "slash1";
+    // Fire1을 누르고 있는 동안 이 순서대로 이어 베고, 끝나면 처음으로 돌아간다. 제자리에서 이어 보이는 클립만 골랐다.
+    private static readonly string[] ComboClipNames = { "slash1", "slash4", "slash7", "slash3" };
+    private const float ComboExitTime = 0.8f;       // 클립의 이 지점부터 다음 베기로 넘어간다(뒷동작을 잘라 끊김을 줄인다).
+    private const float ComboBlendTime = 0.18f;
 
     // 새 캐릭터는 키가 0.8(모델 단위)라서 Soldier(머리 높이 약 2.1m)와 비슷해지도록 키운다.
     private const float ModelScale = 2.7f;
@@ -226,8 +229,7 @@ public static class SwordHeroBuilder
 
         var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
         var stance = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{ClipFolder}/{IdleClipName}.anim");
-        var attack = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{ClipFolder}/{AttackClipName}.anim");
-        if (stance == null || attack == null)
+        if (stance == null || !ApplyCombo(controller))
         {
             Debug.LogError("변환된 칼 애니메이션이 없습니다. Tools > Characters > Convert Sword Animations를 먼저 실행하세요.");
             return null;
@@ -247,16 +249,120 @@ public static class SwordHeroBuilder
                 {
                     child.state.motion = stance;
                 }
-                else if (child.state.name == "Shoot")
-                {
-                    child.state.motion = attack;
-                }
             }
         }
 
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();
         return controller;
+    }
+
+    // UpperBody 레이어의 Shoot 상태를 "ComboClipNames 순서로 이어지는 상태 사슬"로 바꾼다. 여러 번 실행해도 같은 결과가 된다.
+    // None → Shoot(첫 베기) → Combo2 → Combo3 … → 다시 Shoot. 어느 베기에서든 Shoot를 떼면 None(칼 자세)로 돌아간다.
+    private static bool ApplyCombo(AnimatorController controller)
+    {
+        foreach (AnimatorControllerLayer layer in controller.layers)
+        {
+            if (layer.name != "UpperBody")
+            {
+                continue;
+            }
+
+            AnimatorStateMachine machine = layer.stateMachine;
+            AnimatorState first = null;
+            AnimatorState none = null;
+            Vector3 firstPosition = Vector3.zero;
+            foreach (ChildAnimatorState child in machine.states)
+            {
+                if (child.state.name == "Shoot")
+                {
+                    first = child.state;
+                    firstPosition = child.position;
+                }
+                else if (child.state.name == "None")
+                {
+                    none = child.state;
+                }
+            }
+
+            if (first == null || none == null)
+            {
+                Debug.LogError("UpperBody 레이어에 None/Shoot 상태가 없습니다.");
+                return false;
+            }
+
+            // 이전에 만든 이어베기 상태는 지우고 다시 만든다.
+            foreach (ChildAnimatorState child in machine.states)
+            {
+                if (child.state.name.StartsWith("Combo"))
+                {
+                    machine.RemoveState(child.state);
+                }
+            }
+
+            var chain = new List<AnimatorState> { first };
+            for (int i = 1; i < ComboClipNames.Length; i++)
+            {
+                AnimatorState state = machine.AddState($"Combo{i + 1}", firstPosition + new Vector3(0f, 60f * i, 0f));
+                chain.Add(state);
+            }
+
+            for (int i = 0; i < chain.Count; i++)
+            {
+                var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{ClipFolder}/{ComboClipNames[i]}.anim");
+                if (clip == null)
+                {
+                    Debug.LogError($"칼 애니메이션 {ComboClipNames[i]}가 없습니다. Tools > Characters > Convert Sword Animations를 먼저 실행하세요.");
+                    return false;
+                }
+
+                chain[i].motion = clip;
+                chain[i].speed = 1f;
+
+                // 기존 전환은 모두 지우고: 베기 끝 무렵 다음 베기로, Shoot를 떼면 칼 자세로.
+                foreach (AnimatorStateTransition old in chain[i].transitions)
+                {
+                    chain[i].RemoveTransition(old);
+                }
+
+                AnimatorStateTransition next = chain[i].AddTransition(chain[(i + 1) % chain.Count]);
+                next.hasExitTime = true;
+                next.exitTime = ComboExitTime;
+                next.duration = ComboBlendTime;
+                next.hasFixedDuration = true;
+                next.AddCondition(AnimatorConditionMode.If, 0f, "Shoot");
+
+                AnimatorStateTransition release = chain[i].AddTransition(none);
+                release.hasExitTime = false;
+                release.duration = 0.15f;
+                release.hasFixedDuration = true;
+                release.AddCondition(AnimatorConditionMode.IfNot, 0f, "Shoot");
+            }
+
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
+            return true;
+        }
+
+        Debug.LogError("UpperBody 레이어를 찾지 못했습니다.");
+        return false;
+    }
+
+    // 컨트롤러를 새로 만들지 않고, 지금 컨트롤러의 베기만 이어베기로 바꾼다. 씬은 건드리지 않는다.
+    [MenuItem("Tools/Characters/Apply Sword Combo")]
+    private static void ApplyComboToExisting()
+    {
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+        if (controller == null)
+        {
+            Debug.LogError("SwordLocomotion 컨트롤러가 없습니다. Tools > Characters > Build Sword Hero를 먼저 실행하세요.");
+            return;
+        }
+
+        if (ApplyCombo(controller))
+        {
+            Debug.Log($"이어베기 {ComboClipNames.Length}연: {string.Join(" → ", ComboClipNames)}");
+        }
     }
 
     // ───────────────────────── 3. 플레이어 교체 ─────────────────────────
