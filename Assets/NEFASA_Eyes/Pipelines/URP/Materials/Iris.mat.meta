@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b2989f94c54ec2d4b94ad3ea6c5a07b9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Pipelines/URP/Materials/Iris.mat
+  uploadId: 1010578

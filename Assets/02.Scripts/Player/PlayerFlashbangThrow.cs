@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 // 마우스 오른쪽 버튼을 누르고 있으면 힘을 모으고, 떼면 바라보는 방향으로 섬광탄을 던진다. 오래 누를수록 멀리 날아간다.
-// 섬광탄은 부딪히면 불이 붙어 잠시 동안 주변을 환하게 밝힌다. (폭발·피해 없음, 동작은 FlashbangProjectile이 맡는다)
+// 섬광탄 개수는 한정되어 있고, 남은 개수가 바뀌면 이벤트로 알린다. (UI가 구독)
+// 섬광탄은 부딪히면 불이 붙어 잠시 동안 주변을 환하게 밝힌다. (주변 좀비에게 피해도 준다. 동작은 FlashbangProjectile이 맡는다)
 public class PlayerFlashbangThrow : MonoBehaviour
 {
     [FormerlySerializedAs("_eggPrefab")]
@@ -17,12 +19,21 @@ public class PlayerFlashbangThrow : MonoBehaviour
     [SerializeField] private float _maxChargeTime = 1.5f;
     [SerializeField] private float _upwardBoost = 3f;
     [SerializeField] private float _cooldown = 1f;
+    [SerializeField] private int _maxBombs = 5;
 
     private float _cooldownTimer;
     private float _chargeTimer;
     private bool _charging;
     private bool _throwPending;
     private float _pendingCharge;
+    private PlayerZoom _zoom;
+    private int _bombs;
+
+    // (남은 개수, 최대 개수)
+    public event Action<int, int> BombsChanged;
+
+    public int Bombs => _bombs;
+    public int MaxBombs => _maxBombs;
 
     private void Awake()
     {
@@ -37,6 +48,9 @@ public class PlayerFlashbangThrow : MonoBehaviour
         {
             _playerAnimation = GetComponentInChildren<PlayerAnimation>();
         }
+
+        _zoom = GetComponent<PlayerZoom>();
+        _bombs = _maxBombs;
     }
 
     private void OnEnable()
@@ -63,9 +77,23 @@ public class PlayerFlashbangThrow : MonoBehaviour
     {
         _cooldownTimer -= Time.deltaTime;
 
+        // 저격 모드에서는 오른쪽 버튼이 줌이므로 던지지 않는다. 모으던 중이면 취소한다.
+        if (_zoom != null && _zoom.Mode == WeaponMode.Sniper)
+        {
+            if (_charging)
+            {
+                _charging = false;
+                if (_playerAnimation != null)
+                {
+                    _playerAnimation.SetThrowCharge(false, 0f);
+                }
+            }
+            return;
+        }
+
         if (!_charging)
         {
-            if (Input.GetMouseButtonDown(1) && _cooldownTimer <= 0f && !_throwPending)
+            if (Input.GetMouseButtonDown(1) && _cooldownTimer <= 0f && !_throwPending && _bombs > 0)
             {
                 _charging = true;
                 _chargeTimer = 0f;
@@ -85,6 +113,8 @@ public class PlayerFlashbangThrow : MonoBehaviour
         {
             _charging = false;
             _cooldownTimer = _cooldown;
+            _bombs--;
+            BombsChanged?.Invoke(_bombs, _maxBombs);
 
             // 던지기 모션에서 손을 떠나는 순간 섬광탄을 만든다. 모션을 쓸 수 없으면 바로 던진다.
             if (_playerAnimation != null && _playerAnimation.PlayThrowSwing())
@@ -117,7 +147,7 @@ public class PlayerFlashbangThrow : MonoBehaviour
         Transform cameraTransform = Camera.main.transform;
         Vector3 spawnPosition = cameraTransform.position + cameraTransform.forward;
 
-        FlashbangProjectile flashbang = Instantiate(_flashbangPrefab, spawnPosition, Random.rotation);
+        FlashbangProjectile flashbang = Instantiate(_flashbangPrefab, spawnPosition, UnityEngine.Random.rotation);
         flashbang.Launch(cameraTransform.forward * throwSpeed + Vector3.up * _upwardBoost);
     }
 }

@@ -179,8 +179,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   _speed: 140
-  _maxDistance: 120
+  _maxDistance: 1500
   _trail: {fileID: 6674142103220404945}
+  _powerfulHeadScale: 4
+  _powerfulTrailWidth: 0.25
+  _powerfulTrailTime: 0.3
+  _powerfulColor: {r: 0.6, g: 0.85, b: 1, a: 1}
 --- !u!1 &8282899224239294852
 GameObject:
   m_ObjectHideFlags: 0

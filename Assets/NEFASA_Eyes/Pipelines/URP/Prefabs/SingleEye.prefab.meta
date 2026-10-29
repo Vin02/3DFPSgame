@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 23c92a7824440a1428bdcba28802c8dc
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Pipelines/URP/Prefabs/SingleEye.prefab
+  uploadId: 1010578

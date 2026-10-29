@@ -19,6 +19,14 @@ public static class GrotesqueZombieBuilder
     private const string ConeMeshPath = "Assets/05.Models/Monsters/GrotesqueCone.asset";
     private const string SkinShaderName = "Custom/CosmicHorror";
 
+    // EYE ADVANCED 에셋(원본은 그대로 두고, URP용 셰이더 Custom/EyeAdvancedURP로 같은 텍스처를 그린다)
+    private const string EyeShaderName = "Custom/EyeAdvancedURP";
+    private const string EyeMeshPath = "Assets/EYE ADVANCED/Mesh/EyeAdvancedObjects.fbx";
+    private const string EyeMeshName = "EyeAdvanced_LOD0";
+    private const string EyeSourceMaterialPath = "Assets/EYE ADVANCED/Materials/mat_EyeAdvanceLOD0.mat";
+    private const string EyeTextureFolder = "Assets/EYE ADVANCED/Textures/";
+    private const float EyeMeshDiameter = 0.04f; // 눈 메시의 지름(미터). 이 값으로 나눠 원하는 크기에 맞춘다.
+
     private static readonly string[] ZombiePrefabPaths =
     {
         "Assets/03.Prefabs/Monsters/Zombie_Enemy_1.prefab",
@@ -35,8 +43,8 @@ public static class GrotesqueZombieBuilder
     private struct Materials
     {
         public Material Skin;
-        public Material Sclera;
-        public Material Pupil;
+        public Mesh EyeMesh;
+        public Material[] Eyes;
         public Material MawInside;
         public Material Bone;
         public Material Tentacle;
@@ -91,7 +99,7 @@ public static class GrotesqueZombieBuilder
         Transform head = BuildHead(zombie.transform, neck, headBone, unit, materials, sphere, cylinder, cone, random, eyes,
             out Transform mawLeft, out Transform mawRight, recordUndo);
 
-        BuildBodyEyes(zombie, animator, unit, materials, sphere, random, eyes, recordUndo);
+        BuildBodyEyes(zombie, animator, unit, materials, random, eyes, recordUndo);
         BuildClaws(zombie.transform, animator, unit, materials.Bone, cone, random, recordUndo);
         BuildTentacles(zombie.transform, animator, unit, materials.Tentacle, random, recordUndo);
 
@@ -185,7 +193,7 @@ public static class GrotesqueZombieBuilder
 
             Vector3 surface = Vector3.Scale(direction, new Vector3(0.13f, 0.15f, 0.12f));
             float size = Range(random, 0.04f, 0.075f);
-            eyes.Add(CreateEyeLocal(head, surface, Quaternion.LookRotation(direction), size, sphere, materials));
+            eyes.Add(CreateEyeLocal(head, surface, Quaternion.LookRotation(direction), size, materials, random));
             placed++;
         }
 
@@ -217,7 +225,7 @@ public static class GrotesqueZombieBuilder
     // ───────────────────────── 몸의 눈 ─────────────────────────
 
     // 실제 살갗 정점 위(몸통·어깨·팔)에 눈을 박는다. 정점의 주 뼈에 붙여서 애니메이션을 따라간다.
-    private static void BuildBodyEyes(GameObject zombie, Animator animator, float unit, Materials materials, Mesh sphere,
+    private static void BuildBodyEyes(GameObject zombie, Animator animator, float unit, Materials materials,
         System.Random random, List<Transform> eyes, bool recordUndo)
     {
         var allowedBones = new HashSet<Transform>();
@@ -293,7 +301,7 @@ public static class GrotesqueZombieBuilder
             float size = Range(random, 0.035f, 0.06f) * unit;
             Vector3 worldNormal = candidate.bone.TransformDirection(candidate.normal).normalized;
             Vector3 position = candidate.world + worldNormal * size * 0.2f;
-            Transform eye = CreateEyeWorld(candidate.bone, position, Quaternion.LookRotation(worldNormal), size, sphere, materials, recordUndo);
+            Transform eye = CreateEyeWorld(candidate.bone, position, Quaternion.LookRotation(worldNormal), size, materials, random, recordUndo);
             eyes.Add(eye);
             placed.Add(candidate.world);
         }
@@ -360,26 +368,26 @@ public static class GrotesqueZombieBuilder
 
     // ───────────────────────── 눈 ─────────────────────────
 
-    // 눈 하나: 빛나는 흰자 + 세로로 찢어진 동공. 로컬 앞(Z)을 바라본다.
-    private static Transform CreateEyeLocal(Transform parent, Vector3 localPosition, Quaternion localRotation, float size, Mesh sphere, Materials materials)
+    // 눈 하나: EYE ADVANCED 눈알 메시. 로컬 앞(Z)을 바라본다. 홍채 무늬는 눈마다 제각각이다.
+    private static Transform CreateEyeLocal(Transform parent, Vector3 localPosition, Quaternion localRotation, float size, Materials materials, System.Random random)
     {
-        GameObject eye = CreateLocal(parent, "Eye", sphere, materials.Sclera, localPosition, localRotation, Vector3.one * size);
-        DecorateEye(eye, sphere, materials);
-        return eye.transform;
-    }
-
-    private static Transform CreateEyeWorld(Transform parent, Vector3 position, Quaternion rotation, float worldSize, Mesh sphere, Materials materials, bool recordUndo)
-    {
-        GameObject eye = CreatePart(parent, "Eye", sphere, materials.Sclera, position, rotation, Vector3.one * worldSize, recordUndo);
-        DecorateEye(eye, sphere, materials);
-        return eye.transform;
-    }
-
-    private static void DecorateEye(GameObject eye, Mesh sphere, Materials materials)
-    {
+        GameObject eye = CreateLocal(parent, "Eye", materials.EyeMesh, PickEyeMaterial(materials, random), localPosition, localRotation,
+            Vector3.one * (size / EyeMeshDiameter));
         eye.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
-        GameObject pupil = CreateLocal(eye.transform, "Pupil", sphere, materials.Pupil, new Vector3(0f, 0f, 0.45f), Quaternion.identity, new Vector3(0.16f, 0.62f, 0.14f));
-        pupil.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+        return eye.transform;
+    }
+
+    private static Transform CreateEyeWorld(Transform parent, Vector3 position, Quaternion rotation, float worldSize, Materials materials, System.Random random, bool recordUndo)
+    {
+        GameObject eye = CreatePart(parent, "Eye", materials.EyeMesh, PickEyeMaterial(materials, random), position, rotation,
+            Vector3.one * (worldSize / EyeMeshDiameter), recordUndo);
+        eye.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+        return eye.transform;
+    }
+
+    private static Material PickEyeMaterial(Materials materials, System.Random random)
+    {
+        return materials.Eyes[random.Next(materials.Eyes.Length)];
     }
 
     // ───────────────────────── 생성 도우미 ─────────────────────────
@@ -485,9 +493,8 @@ public static class GrotesqueZombieBuilder
         return new Materials
         {
             Skin = PrepareSkin(),
-            // 너무 밝으면 블룸에 동공이 묻히므로 은은하게만 빛나게 한다.
-            Sclera = LoadOrCreateLit("GrotesqueScleraMat", new Color(0.85f, 0.8f, 0.55f), 0.9f, new Color(1f, 0.8f, 0.3f) * 0.35f),
-            Pupil = LoadOrCreateUnlit("GrotesquePupilMat", Color.black),
+            EyeMesh = LoadEyeMesh(),
+            Eyes = PrepareEyeMaterials(),
             MawInside = LoadOrCreateLit("GrotesqueMawMat", new Color(0.2f, 0.01f, 0.02f), 0.85f, new Color(0.15f, 0f, 0.01f)),
             Bone = LoadOrCreateLit("GrotesqueBoneMat", new Color(0.78f, 0.72f, 0.58f), 0.5f, null),
             Tentacle = LoadOrCreateLit("GrotesqueTentacleMat", new Color(0.42f, 0.36f, 0.38f), 0.75f, null),
@@ -558,13 +565,72 @@ public static class GrotesqueZombieBuilder
         return material;
     }
 
-    private static Material LoadOrCreateUnlit(string materialName, Color color)
+    private static Mesh LoadEyeMesh()
     {
-        Material material = LoadOrCreate(materialName, "Universal Render Pipeline/Unlit");
-        material.SetColor("_BaseColor", color);
-        material.enableInstancing = true;
-        EditorUtility.SetDirty(material);
-        return material;
+        foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(EyeMeshPath))
+        {
+            if (asset is Mesh mesh && mesh.name == EyeMeshName)
+            {
+                return mesh;
+            }
+        }
+
+        Debug.LogError($"눈 메시를 찾지 못했습니다: {EyeMeshPath} ({EyeMeshName})");
+        return Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+    }
+
+    // 홍채 무늬·색·빛·동공 모양이 다른 눈 재질들. 흰자·노말맵 등은 에셋 원본 재질에서 가져온다.
+    private static Material[] PrepareEyeMaterials()
+    {
+        var source = AssetDatabase.LoadAssetAtPath<Material>(EyeSourceMaterialPath);
+        Shader shader = Shader.Find(EyeShaderName);
+        if (source == null || shader == null)
+        {
+            Debug.LogError("EYE ADVANCED 재질 또는 Custom/EyeAdvancedURP 셰이더를 찾지 못했습니다.");
+            return new[] { LoadOrCreateLit("GrotesqueEyeFallbackMat", new Color(0.85f, 0.8f, 0.55f), 0.9f, null) };
+        }
+
+        // (재질 이름, 홍채 텍스처, 홍채 마스크, 홍채 색, 뒤에서 비치는 빛, 동공 크기 0~1)
+        var variants = new (string name, string iris, string mask, Color tint, Color glow, float pupil)[]
+        {
+            ("GrotesqueEye_Amber", "eyeball_IRIS_01.tga", null, new Color(1f, 0.85f, 0.45f), new Color(1f, 0.55f, 0.1f, 0.5f), 0.55f),
+            ("GrotesqueEye_Green", "eyeball_IRIS_05.tga", null, new Color(0.7f, 1f, 0.5f), new Color(0.3f, 1f, 0.2f, 0.6f), 0.45f),
+            ("GrotesqueEye_Red", "eyeball_IRIS_09.tga", null, new Color(1f, 0.4f, 0.35f), new Color(1f, 0.1f, 0.05f, 0.6f), 0.7f),
+            ("GrotesqueEye_Cat", "eyeball_IRIS_CAT_01.psd", "eyeball_MASK_Cat.psd", new Color(1f, 0.9f, 0.4f), new Color(1f, 0.7f, 0.1f, 0.5f), 0.4f),
+        };
+
+        var result = new Material[variants.Length];
+        for (int i = 0; i < variants.Length; i++)
+        {
+            var variant = variants[i];
+            Material material = LoadOrCreate(variant.name, EyeShaderName);
+            material.shader = shader;
+
+            foreach (string property in new[] { "_MainTex", "_CorneaBump", "_EyeBump", "_IrisTex" })
+            {
+                material.SetTexture(property, source.GetTexture(property));
+            }
+
+            material.SetTexture("_IrisColorTex", AssetDatabase.LoadAssetAtPath<Texture2D>(EyeTextureFolder + variant.iris));
+            if (variant.mask != null)
+            {
+                material.SetTexture("_IrisTex", AssetDatabase.LoadAssetAtPath<Texture2D>(EyeTextureFolder + variant.mask));
+            }
+
+            material.SetFloat("_irisSize", source.GetFloat("_irisSize"));
+            material.SetFloat("_scleraSize", source.GetFloat("_scleraSize"));
+            material.SetFloat("_smoothness", 0.85f);
+            material.SetFloat("_specsize", source.GetFloat("_specsize"));
+            material.SetFloat("_pupilSize", variant.pupil);
+            material.SetColor("_scleraColor", source.GetColor("_scleraColor"));
+            material.SetColor("_irisColor", new Color(variant.tint.r, variant.tint.g, variant.tint.b, 1f));
+            material.SetColor("_illumColor", variant.glow);
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
+            result[i] = material;
+        }
+
+        return result;
     }
 
     private static Material LoadOrCreate(string materialName, string shaderName)

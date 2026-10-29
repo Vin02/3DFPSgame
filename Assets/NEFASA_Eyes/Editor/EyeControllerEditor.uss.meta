@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: dd54e23abcedefb499f2fdb2303c6aba
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 12385, guid: 0000000000000000e000000000000000, type: 0}
+  disableValidation: 0
+  unsupportedSelectorAction: 0
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Editor/EyeControllerEditor.uss
+  uploadId: 1010578

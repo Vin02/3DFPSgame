@@ -66,6 +66,8 @@ public class Zombie : MonoBehaviour
     public event Action<Zombie> Died;
     // 죽은 채로 _despawnDelay가 지나 풀로 돌려보낼 때가 된 순간
     public event Action<Zombie> Despawn;
+    // 탑에 부딪혀 사라지는 순간. 처치로 세지 않고 곧바로 풀로 돌려보낸다.
+    public event Action<Zombie> Crashed;
 
     private void Awake()
     {
@@ -164,6 +166,26 @@ public class Zombie : MonoBehaviour
         }
 
         Died?.Invoke(this);
+    }
+
+    // 탑에 부딪혔다. 죽음 연출 없이 바로 사라진다. (이미 죽었거나 사라지는 중이면 무시)
+    public void CrashIntoTower()
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        _state = ZombieState.Dead;
+        _despawnRequested = true;
+        _controller.enabled = false;
+
+        if (_minimapIcon != null)
+        {
+            _minimapIcon.SetActive(false);
+        }
+
+        Crashed?.Invoke(this);
     }
 
     private IEnumerator Hit_Coroutine()

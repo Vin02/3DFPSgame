@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c123ff40b47b41140bf3075240d8c878
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Documentation/Gallery_DE_EN/gallery_report.json
+  uploadId: 1010578

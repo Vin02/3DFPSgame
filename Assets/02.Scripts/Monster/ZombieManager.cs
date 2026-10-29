@@ -123,12 +123,20 @@ public class ZombieManager : MonoBehaviour
     {
         zombie.Died += OnZombieDied;
         zombie.Despawn += OnZombieDespawn;
+        zombie.Crashed += OnZombieCrashed;
     }
 
     private void OnZombieDied(Zombie zombie)
     {
         _alive.Remove(zombie);
         _killCount++;
+    }
+
+    // 탑에 부딪힌 좀비는 처치 수에 넣지 않고 바로 풀로 돌려보낸다.
+    private void OnZombieCrashed(Zombie zombie)
+    {
+        _alive.Remove(zombie);
+        _pool.Release(zombie);
     }
 
     private void OnZombieDespawn(Zombie zombie)

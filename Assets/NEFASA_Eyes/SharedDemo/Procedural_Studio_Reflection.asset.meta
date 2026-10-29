@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 160e2e870e723e246af3a5a983808a4a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8900000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/SharedDemo/Procedural_Studio_Reflection.asset
+  uploadId: 1010578

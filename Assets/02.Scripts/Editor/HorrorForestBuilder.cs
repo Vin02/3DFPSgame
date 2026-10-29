@@ -11,7 +11,7 @@ using UnityEngine.UI;
 //  - 나무·고목·바위·덤불·등불을 고정 시드로 흩뿌리고, 바깥으로 못 나가게 보이지 않는 벽을 세운다.
 //  - 좀비 스포너를 숲 곳곳에 두고, 좀비 크기와 체력을 키운다.
 //  - 달빛·안개·손전등·라이트 프로브·베이크 설정·공포 분위기 후처리 볼륨을 만든다.
-//  - 위쪽에 좀비 수·처치 수, 오른쪽 아래에 탄약을 표시하는 HUD를 만든다. (좀비는 끝없이 나온다)
+//  - 위쪽에 좀비 수·처치 수를 표시하는 HUD를 만든다. (탄약·폭탄은 WeaponHud가 맡는다) (좀비는 끝없이 나온다)
 // 이름으로 찾아 갱신하므로 다시 실행해도 중복되지 않는다. 씬 파일은 저장하지 않는다. (씬 오브젝트 변경은 Ctrl+Z로 되돌릴 수 있다)
 // 라이트맵 베이크는 오래 걸리므로 Tools > Map > Bake Horror Forest Lighting으로 따로 실행한다.
 public static class HorrorForestBuilder
@@ -34,9 +34,9 @@ public static class HorrorForestBuilder
     private const int Seed = 1337;
     private const float HalfSize = 75f;          // 숲 영역 반 크기 (땅은 160m x 160m)
     private const float ClearRadius = 9f;        // 시작 지점 주변 빈 공간
-    private const int TreeCount = 420;
-    private const int EdgeTreeCount = 180;       // 가장자리를 막는 빽빽한 나무
-    private const int DeadTreeCount = 70;
+    private const int TreeCount = 0;
+    private const int EdgeTreeCount = 0;        // 가장자리를 막는 빽빽한 나무
+    private const int DeadTreeCount = 0;
     private const int RockCount = 60;
     private const int BushCount = 160;
     private const int LanternCount = 8;
@@ -1048,13 +1048,6 @@ public static class HorrorForestBuilder
         Text zombieText = CreateText(hud, "ZombieCounter", 34, TextAnchor.UpperCenter, new Color(0.85f, 0.12f, 0.1f));
         Place(zombieText.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -28f), new Vector2(800f, 60f));
 
-        Text ammoText = CreateText(hud, "AmmoCounter", 48, TextAnchor.LowerRight, Color.white);
-        Place(ammoText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 50f), new Vector2(400f, 70f));
-
-        Text reloadText = CreateText(hud, "ReloadText", 22, TextAnchor.LowerRight, new Color(1f, 0.8f, 0.3f));
-        Place(reloadText.rectTransform, new Vector2(1f, 0f), new Vector2(-40f, 20f), new Vector2(400f, 34f));
-        reloadText.text = "RELOADING...";
-
         // 좀비가 끝없이 나오므로 예전의 승리 화면은 지운다.
         Transform victory = hud.Find("VictoryPanel");
         if (victory != null)
@@ -1065,10 +1058,7 @@ public static class HorrorForestBuilder
         CombatHud combatHud = GetOrAddComponent<CombatHud>(hud.gameObject);
         var serialized = new SerializedObject(combatHud);
         serialized.FindProperty("_zombieManager").objectReferenceValue = zombieManager;
-        serialized.FindProperty("_gun").objectReferenceValue = gun;
         serialized.FindProperty("_zombieText").objectReferenceValue = zombieText;
-        serialized.FindProperty("_ammoText").objectReferenceValue = ammoText;
-        serialized.FindProperty("_reloadText").objectReferenceValue = reloadText;
         serialized.ApplyModifiedProperties();
     }
 

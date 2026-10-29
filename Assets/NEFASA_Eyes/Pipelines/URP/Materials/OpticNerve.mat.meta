@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 34e2de54325e9964d8d3ed0a1c0aa50e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Pipelines/URP/Materials/OpticNerve.mat
+  uploadId: 1010578

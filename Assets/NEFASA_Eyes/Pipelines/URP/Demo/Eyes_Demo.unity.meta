@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 172341a9e3396fa4c9b9d752f2ba620c
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 413730
+  packageName: Realistic Human Eyes
+  packageVersion: 1.3.0
+  assetPath: Assets/NEFASA_Eyes/Pipelines/URP/Demo/Eyes_Demo.unity
+  uploadId: 1010578

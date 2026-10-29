@@ -5,8 +5,13 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [SerializeField] private float _speed = 140f;
-    [SerializeField] private float _maxDistance = 120f;
+    [SerializeField] private float _maxDistance = 1500f;   // 지평선 너머 거대한 존재까지 닿아야 한다.
     [SerializeField] private TrailRenderer _trail;
+    [Header("Powerful (저격탄)")]
+    [SerializeField] private float _powerfulHeadScale = 4f;
+    [SerializeField] private float _powerfulTrailWidth = 0.25f;
+    [SerializeField] private float _powerfulTrailTime = 0.3f;
+    [SerializeField] private Color _powerfulColor = new Color(0.6f, 0.85f, 1f);
 
     private Vector3 _direction;
     private float _traveled;
@@ -16,14 +21,22 @@ public class Bullet : MonoBehaviour
     private EffectPool _bloodEffectPool;
     private PooledObject _pooled;
     private bool _flying;
+    private Vector3 _baseScale;
+    private float _baseTrailWidth;
+    private float _baseTrailTime;
+    private Gradient _baseGradient;
+    private Gradient _powerfulGradient;
 
-    public void Fire(Vector3 origin, Vector3 direction, float damage, LayerMask hitMask, EffectPool hitEffectPool, EffectPool bloodEffectPool)
+    public void Fire(Vector3 origin, Vector3 direction, float damage, LayerMask hitMask, EffectPool hitEffectPool, EffectPool bloodEffectPool, bool powerful = false)
     {
         // 풀이 생성 직후에 PooledObject를 붙일 수 있어서, Awake가 아니라 처음 쏠 때 찾는다.
         if (_pooled == null)
         {
             _pooled = GetComponent<PooledObject>();
+            CacheLook();
         }
+
+        ApplyLook(powerful);
 
         transform.SetPositionAndRotation(origin, Quaternion.LookRotation(direction));
         _direction = direction;
@@ -39,6 +52,40 @@ public class Bullet : MonoBehaviour
         {
             _trail.Clear();
         }
+    }
+
+    // 풀에서 재사용되므로 기본 모습을 처음 한 번 저장해 두고, 쏠 때마다 일반탄/저격탄 모습으로 맞춘다.
+    private void CacheLook()
+    {
+        _baseScale = transform.localScale;
+
+        if (_trail == null)
+        {
+            return;
+        }
+
+        _baseTrailWidth = _trail.widthMultiplier;
+        _baseTrailTime = _trail.time;
+        _baseGradient = _trail.colorGradient;
+        _powerfulGradient = new Gradient
+        {
+            colorKeys = new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(_powerfulColor, 1f) },
+            alphaKeys = new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) },
+        };
+    }
+
+    private void ApplyLook(bool powerful)
+    {
+        transform.localScale = powerful ? _baseScale * _powerfulHeadScale : _baseScale;
+
+        if (_trail == null)
+        {
+            return;
+        }
+
+        _trail.widthMultiplier = powerful ? _powerfulTrailWidth : _baseTrailWidth;
+        _trail.time = powerful ? _powerfulTrailTime : _baseTrailTime;
+        _trail.colorGradient = powerful ? _powerfulGradient : _baseGradient;
     }
 
     private void Update()
@@ -70,9 +117,10 @@ public class Bullet : MonoBehaviour
     {
         // 유니티 오브젝트는 ?. 대신 != null로 검사한다. 콜라이더가 자식에 있어도 맞도록 부모에서 찾는다.
         Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
+        CosmicColossus colossus = hit.collider.GetComponentInParent<CosmicColossus>();
 
         // 좀비를 맞히면 피, 그 외에는 기본 피격 이펙트를 낸다.
-        EffectPool effectPool = zombie != null && _bloodEffectPool != null ? _bloodEffectPool : _hitEffectPool;
+        EffectPool effectPool = (zombie != null || colossus != null) && _bloodEffectPool != null ? _bloodEffectPool : _hitEffectPool;
         if (effectPool != null)
         {
             effectPool.Spawn(hit.point, Quaternion.LookRotation(hit.normal));
@@ -81,6 +129,11 @@ public class Bullet : MonoBehaviour
         if (zombie != null)
         {
             zombie.TakeDamage(_damage);
+        }
+
+        if (colossus != null)
+        {
+            colossus.TakeDamage(_damage, hit.point);
         }
 
         Drum drum = hit.collider.GetComponentInParent<Drum>();

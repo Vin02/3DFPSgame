@@ -1,23 +1,17 @@
+using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 //마우스 왼쪽 버튼 누르면 바라보는 방향으로 총알(Bullet 프리팹)을 발사
 // 탄창 하나에 정해진 수만큼 쏠 수 있고, R 키(또는 빈 탄창으로 쏘려 할 때) 재장전한다. 탄창 수는 무제한이다.
+// 일반 모드와 저격 모드는 탄창·재장전 시간·데미지·연사 속도가 따로이고, 모드별로 남은 총알을 따로 기억한다.
+// 총알 수나 재장전 상태가 바뀌면 이벤트로 알린다. (UI가 구독)
 public class PlayerGunFire : MonoBehaviour
 {
     [Header("Magazine")]
     [SerializeField] private int _magazineSize = 30;
     [SerializeField] private float _reloadTime = 1.8f;
     [SerializeField] private KeyCode _reloadKey = KeyCode.R;
-
-    private int _ammo;
-    private float _reloadTimer;
-
-    public int Ammo => _ammo;
-    public int MagazineSize => _magazineSize;
-    public bool IsReloading => _reloadTimer > 0f;
-    // 0(시작) ~ 1(완료). 재장전 중이 아니면 0.
-    public float ReloadProgress => IsReloading ? 1f - _reloadTimer / _reloadTime : 0f;
 
     [Header("Effects (풀)")]
     [SerializeField] private EffectPool _hitEffectPool;
@@ -34,13 +28,54 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private LayerMask _hitMask = ~0;
     [Header("Stat")]
     [SerializeField] private float _range = 100f;
-    [SerializeField] private float _damage = 10f;
+    [SerializeField] private float _damage = 80f;
     [SerializeField] private float _fireInterval = 0.1f;
-    private float _fireTimer = 0f;
+    [Header("Sniper Stat (저격 모드)")]
+    [SerializeField] private int _sniperMagazineSize = 5;
+    [SerializeField] private float _sniperReloadTime = 2.5f;
+    [SerializeField] private float _sniperDamage = 200f;
+    [SerializeField] private float _sniperFireInterval = 1.2f;
+
+    private PlayerZoom _zoom;
+    private int _normalAmmo;
+    private int _sniperAmmo;
+    private float _reloadTimer;
+    private float _fireTimer;
+
+    // (현재 총알 수, 탄창 크기)
+    public event Action<int, int> AmmoChanged;
+    public event Action<bool> ReloadingChanged;
+
+    private bool IsSniper => _zoom != null && _zoom.Mode == WeaponMode.Sniper;
+
+    public int Ammo => IsSniper ? _sniperAmmo : _normalAmmo;
+    public int MagazineSize => IsSniper ? _sniperMagazineSize : _magazineSize;
+    public bool IsReloading => _reloadTimer > 0f;
+    private float ReloadTime => IsSniper ? _sniperReloadTime : _reloadTime;
+    // 0(시작) ~ 1(완료). 재장전 중이 아니면 0.
+    public float ReloadProgress => IsReloading ? 1f - _reloadTimer / ReloadTime : 0f;
 
     private void Awake()
     {
-        _ammo = _magazineSize;
+        _normalAmmo = _magazineSize;
+        _sniperAmmo = _sniperMagazineSize;
+        _zoom = GetComponent<PlayerZoom>();
+    }
+
+    private void OnEnable()
+    {
+        if (_zoom != null)
+        {
+            _zoom.ModeChanged += OnModeChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_zoom != null)
+        {
+            _zoom.ModeChanged -= OnModeChanged;
+        }
     }
 
     private void Update()
@@ -53,12 +88,13 @@ public class PlayerGunFire : MonoBehaviour
             if (_reloadTimer <= 0f)
             {
                 _reloadTimer = 0f;
-                _ammo = _magazineSize;
+                SetAmmo(MagazineSize);
+                ReloadingChanged?.Invoke(false);
             }
             return;
         }
 
-        if (Input.GetKeyDown(_reloadKey) && _ammo < _magazineSize)
+        if (Input.GetKeyDown(_reloadKey) && Ammo < MagazineSize)
         {
             StartReload();
             return;
@@ -67,21 +103,48 @@ public class PlayerGunFire : MonoBehaviour
         // 1. 마우스 왼쪽 버튼 입력 받기
         if (Input.GetButton("Fire1") && _fireTimer <= 0f)
         {
-            if (_ammo <= 0)
+            if (Ammo <= 0)
             {
                 StartReload();
                 return;
             }
 
-            _fireTimer = _fireInterval;
-            _ammo--;
+            _fireTimer = IsSniper ? _sniperFireInterval : _fireInterval;
+            SetAmmo(Ammo - 1);
             Fire();
         }
     }
 
+    // 모드를 바꾸면 재장전은 취소하고, 그 모드의 남은 총알 수를 다시 알린다.
+    private void OnModeChanged(WeaponMode mode)
+    {
+        if (IsReloading)
+        {
+            _reloadTimer = 0f;
+            ReloadingChanged?.Invoke(false);
+        }
+
+        AmmoChanged?.Invoke(Ammo, MagazineSize);
+    }
+
     private void StartReload()
     {
-        _reloadTimer = _reloadTime;
+        _reloadTimer = ReloadTime;
+        ReloadingChanged?.Invoke(true);
+    }
+
+    private void SetAmmo(int ammo)
+    {
+        if (IsSniper)
+        {
+            _sniperAmmo = ammo;
+        }
+        else
+        {
+            _normalAmmo = ammo;
+        }
+
+        AmmoChanged?.Invoke(Ammo, MagazineSize);
     }
 
     // 화면 중앙으로 조준점을 찾고, 총구에서 그 점을 향해 총알을 쏜다.
@@ -109,7 +172,7 @@ public class PlayerGunFire : MonoBehaviour
         PooledObject pooled = _bulletPool.Spawn(origin, Quaternion.LookRotation(direction));
         if (pooled.TryGetComponent(out Bullet bullet))
         {
-            bullet.Fire(origin, direction.normalized, _damage, _hitMask, _hitEffectPool, _bloodEffectPool);
+            bullet.Fire(origin, direction.normalized, IsSniper ? _sniperDamage : _damage, _hitMask, _hitEffectPool, _bloodEffectPool, IsSniper);
         }
     }
 }

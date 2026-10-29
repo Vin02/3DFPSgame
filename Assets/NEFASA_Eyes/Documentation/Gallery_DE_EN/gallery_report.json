@@ -1,0 +1,291 @@
+{
+  "artist": "NEFASA",
+  "version": "1.3",
+  "input_folder": "Previews",
+  "output_folder": "Gallery_DE_EN",
+  "generated": [
+    {
+      "file": "01_Anatomie_Anatomy.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "anatomy": {
+          "file": "Raw_Dreiviertel_Sehnerv.png",
+          "cropped": false
+        }
+      },
+      "de": "Originalauge mit gekennzeichneten Komponenten; das kleine Schema dient als Legende.",
+      "en": "Original eye with identified components; the small schematic is a component legend."
+    },
+    {
+      "file": "02_Sehnerv_OpticNerve.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "nerve_off": {
+          "file": "Raw_Dreiviertel_Sehnerv_Aus.png",
+          "cropped": false
+        },
+        "nerve_on": {
+          "file": "Raw_Dreiviertel_Sehnerv.png",
+          "cropped": false
+        }
+      },
+      "de": "Originalrender mit ausgeblendetem und eingeblendetem Sehnerv.",
+      "en": "Original renders with the optic nerve hidden and visible."
+    },
+    {
+      "file": "03_Vergleich_1_2_1_3.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "before": {
+          "file": "Raw_Vergleich_Vorher_1_2.png",
+          "cropped": false
+        },
+        "after": {
+          "file": "Raw_Vergleich_Nachher_1_3.png",
+          "cropped": false
+        }
+      },
+      "de": "Originalrender beider Versionen bei bestätigter gleicher Ansicht und Beleuchtung.",
+      "en": "Original renders of both versions with verified matching view and lighting."
+    },
+    {
+      "file": "04_Aufbau_Mesh.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "wireframe": {
+          "file": "Raw_Wireframe.png",
+          "cropped": false
+        },
+        "exploded": {
+          "file": "Raw_Exploded.png",
+          "cropped": false
+        }
+      },
+      "de": "Echte Mesh-Drahtansicht und auseinandergezogene Komponentenansicht; technische Darstellung des Aufbaus.",
+      "en": "Actual mesh wireframe and exploded components; technical construction views."
+    },
+    {
+      "file": "05_Farben_Colors.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "colors.blue": {
+          "file": "Raw_Farbe_Blau.png",
+          "cropped": false
+        },
+        "colors.brown": {
+          "file": "Raw_Farbe_Braun.png",
+          "cropped": false
+        },
+        "colors.green": {
+          "file": "Raw_Farbe_Gruen.png",
+          "cropped": false
+        },
+        "colors.gray": {
+          "file": "Raw_Farbe_Grau.png",
+          "cropped": false
+        },
+        "colors.hazel": {
+          "file": "Raw_Farbe_Hasel.png",
+          "cropped": false
+        },
+        "colors.amber": {
+          "file": "Raw_Farbe_Bernstein.png",
+          "cropped": false
+        }
+      },
+      "de": "Sechs echte Render der Augenfarbeinstellungen.",
+      "en": "Six actual renders of eye color settings."
+    },
+    {
+      "file": "Farbe_Blue.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.blue": {
+          "file": "Raw_Farbe_Blau.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Blau. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Blue. Original render of the supplied setting."
+    },
+    {
+      "file": "Farbe_Brown.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.brown": {
+          "file": "Raw_Farbe_Braun.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Braun. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Brown. Original render of the supplied setting."
+    },
+    {
+      "file": "Farbe_Green.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.green": {
+          "file": "Raw_Farbe_Gruen.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Grün. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Green. Original render of the supplied setting."
+    },
+    {
+      "file": "Farbe_Gray.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.gray": {
+          "file": "Raw_Farbe_Grau.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Grau. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Gray. Original render of the supplied setting."
+    },
+    {
+      "file": "Farbe_Hazel.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.hazel": {
+          "file": "Raw_Farbe_Hasel.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Haselnuss. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Hazel. Original render of the supplied setting."
+    },
+    {
+      "file": "Farbe_Amber.png",
+      "size": [
+        1920,
+        1080
+      ],
+      "sources": {
+        "colors.amber": {
+          "file": "Raw_Farbe_Bernstein.png",
+          "cropped": false
+        }
+      },
+      "de": "Augenfarbe: Bernstein. Originalrender der bereitgestellten Einstellung.",
+      "en": "Eye color: Amber. Original render of the supplied setting."
+    },
+    {
+      "file": "06_Unity_Pipelines.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "pipelines.builtin": {
+          "file": "Unity_BuiltIn_Closeup.png",
+          "cropped": false
+        },
+        "pipelines.urp": {
+          "file": "Unity_URP_Closeup.png",
+          "cropped": false
+        },
+        "pipelines.hdrp": {
+          "file": "Unity_HDRP_Closeup.png",
+          "cropped": false
+        }
+      },
+      "de": "Bereitgestellte echte Unity-Render in Built-in, URP und HDRP; die jeweilige Beleuchtung bleibt sichtbar.",
+      "en": "Supplied actual Unity renders in Built-in, URP and HDRP; each pipeline's lighting remains visible."
+    },
+    {
+      "file": "07_Bedienung_Unity.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "usage.unity": {
+          "file": "Screenshot_Unity_Controls.png",
+          "cropped": true
+        }
+      },
+      "de": "Echter Unity-Screenshot aus 1.2 mit Beispielwerten; dieselben Regler werden in 1.3 verwendet.",
+      "en": "Real Unity screenshot from 1.2 with example values; the same controls are used in 1.3."
+    },
+    {
+      "file": "07_Bedienung_Blender.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "usage.blender": {
+          "file": "Screenshot_Blender_Controls.png",
+          "cropped": true
+        }
+      },
+      "de": "Originaler Blender-Screenshot mit kurzer Bedienungsanleitung.",
+      "en": "Original Blender screenshot with concise control instructions."
+    },
+    {
+      "file": "08_Iris_Detail.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "detail.iris": {
+          "file": "Raw_Iris_Detail.png",
+          "cropped": false
+        }
+      },
+      "de": "Originalrender: Fasern, Pigmentbereiche, vertiefte Pupille und feine Gefäße. Farben und Details sind über die Augenregler veränderbar.",
+      "en": "Original render: fibers, pigment areas, recessed pupil and fine vessels. Colors and details are adjustable with the eye controls."
+    },
+    {
+      "file": "09_Sehnerv_Detail.png",
+      "size": [
+        1920,
+        1440
+      ],
+      "sources": {
+        "detail.nerve": {
+          "file": "Raw_Hinten_Sehnerv.png",
+          "cropped": false
+        }
+      },
+      "de": "Originalrender: gebogene Sehnervhülle mit feiner Längsstruktur und rosa Gefäßen. Mit Sehnerv anzeigen vollständig ausblendbar.",
+      "en": "Original render: curved optic nerve sheath with fine longitudinal detail and pink vessels. Hide it completely with Show optic nerve."
+    }
+  ],
+  "skipped": [],
+  "input_problems": {},
+  "complete": true
+}

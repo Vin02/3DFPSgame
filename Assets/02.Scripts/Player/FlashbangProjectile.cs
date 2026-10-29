@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // 던져진 섬광탄. 처음 부딪히거나 신관 시간이 지나면 불이 붙어, 번쩍인 뒤 조명탄처럼 타면서 주변을 환하게 밝힌다.
-// 다 타면 서서히 어두워지고 사라진다. 폭발이나 피해는 없다.
+// 다 타면 서서히 어두워지고 사라진다.
+// 피해: 불이 붙는 순간 주변 좀비에게 한 번 크게(멀수록 약하게), 타는 동안에는 가까운 좀비에게 일정 간격으로 계속 준다.
 [RequireComponent(typeof(Rigidbody))]
 public class FlashbangProjectile : MonoBehaviour
 {
@@ -20,6 +22,16 @@ public class FlashbangProjectile : MonoBehaviour
     [SerializeField] private float _burnTime = 8f;
     [SerializeField] private float _fadeTime = 2f;
 
+    [Header("피해")]
+    [SerializeField] private float _burstDamage = 150f;
+    [SerializeField] private float _burstRadius = 9f;
+    [Tooltip("가장자리에서 맞는 피해 비율 (가운데는 1)")]
+    [SerializeField] private float _burstEdgeRatio = 0.4f;
+    [Tooltip("타는 동안 초당 피해")]
+    [SerializeField] private float _burnDamagePerSecond = 40f;
+    [SerializeField] private float _burnRadius = 6f;
+    [SerializeField] private float _damageInterval = 0.5f;
+
     [Header("빛")]
     [SerializeField] private float _flashIntensity = 250f;
     [SerializeField] private float _burnIntensity = 180f;
@@ -33,6 +45,9 @@ public class FlashbangProjectile : MonoBehaviour
     private float _timer;
     private bool _ignited;
     private float _seed;
+    private float _damageTimer;
+    private readonly Collider[] _overlaps = new Collider[64];
+    private readonly List<Zombie> _victims = new List<Zombie>(16);
 
     private void Awake()
     {
@@ -78,6 +93,17 @@ public class FlashbangProjectile : MonoBehaviour
             return;
         }
 
+        // 타는 동안(번쩍임 뒤부터 다 탈 때까지) 가까운 좀비에게 주기적으로 피해
+        if (_timer >= _flashTime && _timer < _flashTime + _burnTime)
+        {
+            _damageTimer += Time.deltaTime;
+            if (_damageTimer >= _damageInterval)
+            {
+                _damageTimer -= _damageInterval;
+                DamageZombies(_burnRadius, _burnDamagePerSecond * _damageInterval, 1f);
+            }
+        }
+
         float brightness = GetBrightness(_timer);
         if (brightness <= 0f)
         {
@@ -99,6 +125,26 @@ public class FlashbangProjectile : MonoBehaviour
         _ignited = true;
         _timer = 0f;
         _light.enabled = true;
+        DamageZombies(_burstRadius, _burstDamage, _burstEdgeRatio);
+    }
+
+    // 반경 안의 좀비에게 한 번씩 피해를 준다. 거리에 따라 1 → edgeRatio로 줄어든다.
+    private void DamageZombies(float radius, float damage, float edgeRatio)
+    {
+        int count = Physics.OverlapSphereNonAlloc(transform.position, radius, _overlaps, ~0, QueryTriggerInteraction.Ignore);
+        _victims.Clear();
+        for (int i = 0; i < count; i++)
+        {
+            Zombie zombie = _overlaps[i].GetComponentInParent<Zombie>();
+            if (zombie == null || zombie.IsDead || _victims.Contains(zombie))
+            {
+                continue;
+            }
+
+            _victims.Add(zombie);
+            float distance = Vector3.Distance(transform.position, zombie.transform.position);
+            zombie.TakeDamage(damage * Mathf.Lerp(1f, edgeRatio, Mathf.Clamp01(distance / radius)));
+        }
     }
 
     // 불이 붙은 뒤 시간에 따른 빛의 세기: 번쩍임 → 타는 동안 유지 → 서서히 꺼짐

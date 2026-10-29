@@ -1,0 +1,33 @@
+.nefasa-eye-controls {
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 8px;
+}
+
+.nefasa-eye-setting {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.nefasa-eye-controls .unity-base-field__label {
+    min-width: 172px;
+}
+
+.nefasa-eye-presets-heading {
+    margin-top: 10px;
+    margin-bottom: 4px;
+    -unity-font-style: bold;
+}
+
+.nefasa-eye-presets {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.nefasa-eye-presets > Button {
+    flex-grow: 1;
+    flex-basis: 30%;
+    min-width: 128px;
+    min-height: 25px;
+    margin-bottom: 4px;
+}

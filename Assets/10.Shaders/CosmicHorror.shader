@@ -10,6 +10,8 @@ Shader "Custom/CosmicHorror"
         [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
         [MainColor] _BaseColor("Base Color", Color) = (0.42, 0.38, 0.45, 1)
         _Smoothness("Smoothness", Range(0, 1)) = 0.35
+        _FogAmount("Fog Amount", Range(0, 1)) = 1
+        _Glow("Self Glow", Range(0, 1)) = 0
         _Pallor("Pallor", Range(0, 1)) = 0
 
         [HDR] _RimColor("Rim Color", Color) = (0.9, 0.2, 1.6, 1)
@@ -63,6 +65,8 @@ Shader "Custom/CosmicHorror"
                 half4 _BaseColor;
                 half _Smoothness;
                 half _Pallor;
+                half _FogAmount;
+                half _Glow;
                 half4 _RimColor;
                 half _RimPower;
                 half4 _NebulaColorA;
@@ -221,12 +225,12 @@ Shader "Custom/CosmicHorror"
                 surfaceData.specular = half3(0.15, 0.1, 0.2) * (1.0 - voidMask);
                 surfaceData.smoothness = _Smoothness;
                 surfaceData.normalTS = half3(0, 0, 1);
-                surfaceData.emission = space * voidMask + rim;
+                surfaceData.emission = space * voidMask + rim + skin * (1.0 - voidMask) * _Glow;
                 surfaceData.occlusion = 1.0;
                 surfaceData.alpha = 1.0;
 
                 half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
+                color.rgb = lerp(color.rgb, MixFog(color.rgb, inputData.fogCoord), _FogAmount);
                 return half4(color.rgb, 1.0);
             }
             ENDHLSL

@@ -1,0 +1,67 @@
+NEFASA EYES 1.3.0
+
+BLENDER – SO BENUTZT DU DIE AUGEN
+1. Assets/NEFASA_Eyes/Blender_Source.zip in einen Arbeitsordner außerhalb des Unity-Projekts kopieren und entpacken.
+   Darin Blender/Augen_Original.blend öffnen. Augen_Demo.blend enthält zusätzlich ein fertiges Studio für F12.
+2. „Augenfarbe einstellen“ im Outliner auswählen.
+3. Rechts auf den Schraubenschlüssel klicken → „Augenfarbe und Details“.
+4. Augenfarbe und Innenfarbe auswählen. Beide Augen reagieren gemeinsam.
+5. Pupillenradius und die sechs Detailregler nach Wunsch verändern.
+6. „Sehnerv anzeigen“ ausschalten, wenn du die beiden hinteren Sehnerven nicht brauchst.
+7. Für die geschichtete Hornhaut-Lichtbrechung Cycles verwenden.
+8. In einem Charakterprojekt: Datei → Anfügen → Augen_Original.blend → Collection.
+   „Augen“ und „Sehnerven – optional“ gemeinsam markieren und anfügen. Ohne Sehnerven nur „Augen“ wählen.
+9. Den Hauptregler dem Kopf unterordnen und die Augen einzeln in den Augenhöhlen positionieren/ausrichten.
+   Die optionalen feuchten Lidrand-Objekte sind zunächst ausgeblendet und müssen an die verwendeten Augenlider angepasst werden.
+
+UNITY – DIE RICHTIGE VARIANTE WÄHLEN
+URP: Universal Render Pipeline 17.3.0 manuell über Package Manager installieren, dann das Basispaket vollständig importieren.
+Built-in/HDRP: Im ersten Importdialog Assets/NEFASA_Eyes/Pipelines/URP abwählen; gemeinsame Dateien und PipelinePackages importieren.
+Danach in Assets/NEFASA_Eyes/PipelinePackages das passende NEFASA_Eyes_BuiltIn_Supplement.unitypackage oder NEFASA_Eyes_HDRP_Supplement.unitypackage öffnen.
+HDRP braucht vorher High Definition Render Pipeline 17.3.0 samt Shader Graph, manuell über Package Manager installiert.
+Nur den zur aktiven Pipeline passenden Ordner verwenden. Details zum Wechsel: Documentation/AssetStore_Setup.md.
+1. Basispaket und bei Built-in/HDRP die passende Ergänzung wie oben importieren.
+2. Assets/NEFASA_Eyes/Pipelines/<deine Pipeline>/Prefabs/EyePair oder SingleEye in deine Szene ziehen.
+   Die Ordner heißen URP, BuiltIn und HDRP.
+3. Augenpaar auswählen → Inspector → Eye Controller.
+4. Farben, Pupille und Details einstellen. Sechs Farbvorlagen sind verfügbar.
+5. „Sehnerv anzeigen / Show optic nerve“ abwählen, um die hinteren Teile auszublenden.
+6. Alternativ Tools → NEFASA Eyes → Augen einstellen: eigenes Fenster mit denselben echten Reglern.
+7. Demo öffnen: Assets/NEFASA_Eyes/Pipelines/<deine Pipeline>/Demo/Eyes_Demo.
+8. Am Charakter dem Kopf-Knochen unterordnen, Abstand/Position anpassen und die Eye-Kinder für die Blickrichtung drehen.
+
+WAS DIE REGLER MACHEN
+Augenfarbe: Hauptfarbe der Iris.
+Innenfarbe: zweite Farbe nahe der Pupille und in Pigmentbereichen.
+Pupillenradius (mm): tatsächlicher Radius zwischen 0,9 und 3,2 mm.
+Fasertiefe: Intensität des feinen Irisreliefs.
+Äderchen: Sichtbarkeit der verzweigten Gefäße.
+Pigmentierung: Stärke der zweiten Pigmentfarbe.
+Irisrand: Dunkelheit des äußeren Irisrings.
+Glanz: Glätte der feuchten Oberfläche/Hornhaut.
+Feuchtigkeit: Stärke des feuchten Oberflächen-Eindrucks.
+Sehnerv anzeigen: beide optionalen Sehnerven gemeinsam ein-/ausblenden.
+
+TECHNISCHE ANGABEN
+Geprüft: Blender 5.2.1 LTS; Unity 6000.3.23f1, Built-in, URP 17.3.0 und HDRP 17.3.0.
+Andere Unity-/Pipeline-Versionen und mobile Geräte wurden nicht geprüft.
+URP braucht com.unity.render-pipelines.universal 17.3.0; HDRP braucht com.unity.render-pipelines.high-definition 17.3.0 inklusive Shader Graph.
+Unity-Modelle sind in Metern, etwa 24 mm Augendurchmesser; Blickrichtung +Z. Standard-Augenabstand: 60 mm.
+Augenoberflächen inklusive Hornhaut: 21.600 / 10.304 / 4.200 Dreiecke je Auge (LOD0/1/2).
+Optionaler Sehnerv: zusätzlich 7.232 / 2.760 / 888 Dreiecke je Auge.
+Irisstruktur 3072×3072 RGBA und Gefäßmaske 2048×2048: lineare Datenkarten.
+Augenweiß-Farbkarte 2048×2048 und Sehnerv-Farbkarte 1024×2048: sRGB.
+Sehnerv-Normalkarte 1024×2048: lineare Tangenten-Normalen (+Y/OpenGL).
+Standard: natürliches Graubraun, Pupillenradius 2,15 mm, Äderchen 0,60; alle Farben sind veränderbar.
+Die Iris-Alpha enthält Höhendaten, keine Transparenz. Alpha erhalten und sRGB/Alpha-Transparenz bei Datenkarten ausschalten.
+Die Unity-Hornhaut liefert Echtzeit-Reflexionen; Cycles berechnet die geschichtete optische Brechung.
+Licht, Reflection Probes und Belichtung beeinflussen das Ergebnis. In Unity wird Linear-Farbraum empfohlen.
+Der Sehnerv folgt dem jeweiligen Auge als Kindobjekt. Seine weiter hinten liegende Biegung kann bei Bedarf für einen Kopf angepasst werden.
+Keine fertigen Blick-/Blinzelanimationen. FBX überträgt Geometrie/Blendshapes; Blender-Nodes und Materialien werden im Zielprogramm eingerichtet.
+
+BILDER UND ANLEITUNGEN
+Documentation/Gallery_DE_EN: beschriftete Bildtafeln und kurze deutsche/englische Erklärungen.
+README_EN.md: englische Anleitung, API-Beispiel und technische Angaben.
+AssetStore_Setup.md: Installation und Wechsel der Render-Pipeline für dieses Store-Paket.
+
+Die Unity-Bedienungsaufnahme zeigt Beispielwerte aus 1.2; die Regleroberfläche ist in 1.3 unverändert. Die neuen Farbrender zeigen 1.3.
