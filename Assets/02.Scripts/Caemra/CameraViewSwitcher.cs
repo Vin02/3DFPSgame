@@ -30,6 +30,11 @@ public class CameraViewSwitcher : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.IsPaused)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(_switchKey))
         {
             SwitchToNextView();

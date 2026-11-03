@@ -33,6 +33,7 @@ public class PlayerHealth : MonoBehaviour
         if (IsDead)
         {
             GameLogger.Log("플레이어가 쓰러졌습니다.");
+            GameManager.Instance?.GameOver();
         }
     }
 }

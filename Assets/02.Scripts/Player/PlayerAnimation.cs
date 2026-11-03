@@ -54,6 +54,15 @@ public class PlayerAnimation : MonoBehaviour
     [Tooltip("던지기 동작을 끝내고 총 든 자세로 돌아가기 시작하는 정규화 시간.")]
     [SerializeField] private float _throwEnd = 0.7f;
 
+    [Header("Melee")]
+    [Tooltip("근접(Melee) 모드일 때만 가중치가 1이 되는 Animator 레이어 이름.")]
+    [SerializeField] private string _meleeLayerName = "Melee";
+    [SerializeField] private float _meleeBlendTime = 0.2f;
+
+    private Player _player;
+    private int _meleeLayer = -1;
+    private float _meleeWeight;
+
     private float _aimWeight;
     private bool _canAim;
     private int _injuredLayer = -1;
@@ -83,6 +92,12 @@ public class PlayerAnimation : MonoBehaviour
 
         _injuredLayer = _animator.GetLayerIndex(_injuredLayerName);
 
+        _meleeLayer = _animator.GetLayerIndex(_meleeLayerName);
+        if (_meleeLayer < 0)
+        {
+            GameLogger.LogWarning($"PlayerAnimation: Animator에 '{_meleeLayerName}' 레이어가 없어 근접 모드 모션을 쓰지 않습니다.");
+        }
+
         _throwLayer = _animator.GetLayerIndex(_throwLayerName);
         if (_throwLayer < 0)
         {
@@ -96,16 +111,39 @@ public class PlayerAnimation : MonoBehaviour
         }
     }
 
+    // 근접 모드에서는 왼쪽 버튼이 사격이 아니라 베기이므로 사격 모션·조준 보정을 쓰지 않는다.
+    private bool IsShooting => Input.GetButton("Fire1") && (_player == null || _player.Mode != WeaponMode.Melee);
+
+    private void Start()
+    {
+        // Player는 PlayerZoom이 Awake에서 자동으로 붙일 수 있어서 Start에서 찾는다.
+        _player = GetComponentInParent<Player>();
+    }
+
     private void Update()
     {
         Vector3 velocity = _controller.velocity;
         velocity.y = 0f;
 
         _animator.SetFloat(SpeedHash, velocity.magnitude, 0.1f, Time.deltaTime);
-        _animator.SetBool(ShootHash, Input.GetButton("Fire1"));
+        _animator.SetBool(ShootHash, IsShooting);
 
         UpdateInjuredLayer();
+        UpdateMeleeLayer();
         UpdateThrowLayer();
+    }
+
+    // 근접 모드이면 Melee 레이어를 켜고, 아니면 끈다.
+    private void UpdateMeleeLayer()
+    {
+        if (_player == null || _meleeLayer < 0)
+        {
+            return;
+        }
+
+        float target = _player.Mode == WeaponMode.Melee ? 1f : 0f;
+        _meleeWeight = Mathf.MoveTowards(_meleeWeight, target, Time.deltaTime / _meleeBlendTime);
+        _animator.SetLayerWeight(_meleeLayer, _meleeWeight);
     }
 
     // 체력이 절반 이하이면 절뚝이는 레이어의 가중치를 올린다. 이동 중일 때만 레이어의 달리기 모션이 재생된다.
@@ -215,7 +253,7 @@ public class PlayerAnimation : MonoBehaviour
             return;
         }
 
-        float target = Input.GetButton("Fire1") ? 1f : 0f;
+        float target = IsShooting ? 1f : 0f;
         _aimWeight = Mathf.MoveTowards(_aimWeight, target, Time.deltaTime / _aimBlendTime);
 
         if (_aimWeight <= 0f)

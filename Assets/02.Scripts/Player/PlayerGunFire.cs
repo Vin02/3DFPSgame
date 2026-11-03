@@ -60,6 +60,7 @@ public class PlayerGunFire : MonoBehaviour
     public event Action<int, int> AmmoChanged;
     public event Action<bool> ReloadingChanged;
 
+    private bool IsMelee => _zoom != null && _zoom.Mode == WeaponMode.Melee;
     private bool IsSniper => _zoom != null && _zoom.Mode == WeaponMode.Sniper;
 
     public int Ammo => IsSniper ? _sniperAmmo : _normalAmmo;
@@ -74,6 +75,9 @@ public class PlayerGunFire : MonoBehaviour
         _normalAmmo = _magazineSize;
         _sniperAmmo = _sniperMagazineSize;
         _zoom = GetComponent<PlayerZoom>();
+
+        // 칼날(Ignore Raycast 레이어)은 Everything 마스크에도 잡히므로 조준·총알 레이캐스트에서 뺀다.
+        _hitMask &= ~(1 << LayerMask.NameToLayer("Ignore Raycast"));
     }
 
     private void OnEnable()
@@ -94,6 +98,11 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.IsPaused)
+        {
+            return;
+        }
+
         _fireTimer -= Time.deltaTime;
 
         if (IsReloading)
@@ -115,7 +124,8 @@ public class PlayerGunFire : MonoBehaviour
         }
 
         // 1. 마우스 왼쪽 버튼 입력 받기
-        if (Input.GetButton("Fire1") && _fireTimer <= 0f)
+        // 근접 모드에서는 총(검기)을 쏘지 않는다. 왼쪽 버튼은 PlayeMeleeAttack이 쓴다.
+        if (!IsMelee && Input.GetButton("Fire1") && _fireTimer <= 0f)
         {
             if (Ammo <= 0)
             {

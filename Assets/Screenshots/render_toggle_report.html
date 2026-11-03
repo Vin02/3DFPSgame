@@ -1,0 +1,144 @@
+<title>렌더 토글 리포트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 단일 열. 비교표를 먼저, 근거(스크린샷)와 세부 내용을 뒤에 배치 */
+:root{--bg:#f3f4f2;--fg:#17201d;--mute:#5c6863;--line:#d3d8d4;--card:#fff;--accent:#0d7a5f;--bad:#b3341f;--good:#0d7a5f;--warn:#9a6a00;--code:#e6eae7;
+--display:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;--body:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101513;--fg:#e4eae6;--mute:#93a39b;--line:#2a342f;--card:#171e1b;--accent:#4fd1a5;--bad:#ff8a73;--good:#4fd1a5;--warn:#e5b94e;--code:#222b27;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101513;--fg:#e4eae6;--mute:#93a39b;--line:#2a342f;--card:#171e1b;--accent:#4fd1a5;--bad:#ff8a73;--good:#4fd1a5;--warn:#e5b94e;--code:#222b27;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:920px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5.5vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 12px;text-wrap:balance}
+h3{font-size:12px;font-weight:500;letter-spacing:.06em;color:var(--mute);margin:0 0 6px}
+p{margin:0 0 10px;max-width:68ch}
+.sub{color:var(--mute);max-width:62ch}
+code,kbd{font-family:var(--mono);font-size:.88em;background:var(--code);padding:1px 6px;border-radius:4px}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.key{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.key b{display:block;font-family:var(--mono);font-size:20px;margin-bottom:4px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{font-size:12px;font-weight:500;color:var(--mute)}
+tbody tr:last-child td{border-bottom:0}
+.d{font-size:12px;margin-left:6px}.g{color:var(--good)}.n{color:var(--mute)}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px}
+figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+figure img{width:100%;height:auto;border-radius:6px;border:1px solid var(--line);display:block}
+figcaption{font-size:13px;color:var(--mute)}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.cols>div{min-width:0}
+.note{border-left:3px solid var(--warn);padding:4px 0 4px 14px}
+@media(max-width:480px){.shots{grid-template-columns:1fr}}
+</style>
+<main>
+<header>
+<h3>3DFPSgame · URP 17.3 · Unity 6000.3.22f1</h3>
+<h1>조명 끄기, 최적화 켜기: 무엇이 달라졌나</h1>
+<p class="sub">F3/F4는 모든 조명과 포스트 프로세싱을 끄고 복원합니다. O/P는 런타임 최적화를 적용하고 되돌립니다. 아래 수치는 GameScene 공포 숲 맵을 Unity 에디터 Play 모드에서 측정한 값입니다.</p>
+</header>
+
+<section>
+<h2>조작키</h2>
+<div class="keys">
+<div class="key"><b>F3 / F4</b>모든 조명·포스트 프로세싱 끄기 / 다시 켜기</div>
+<div class="key"><b>O / P</b>최적화 적용 / 해제(원래 설정 복원)</div>
+<div class="key"><b>F8 / F9</b>통계 오버레이 on/off / 현재 통계를 콘솔에 출력</div>
+</div>
+<p style="margin-top:12px">코드: <code>Assets/02.Scripts/Game/RenderToggleController.cs</code>. 게임 시작 시 스스로 생성되므로 씬은 수정하지 않았습니다.</p>
+</section>
+
+<section>
+<h2>비용 비교</h2>
+<div class="scroll"><table>
+<thead><tr><th>항목</th><th>기준</th><th>F3 조명·포스트 끔</th><th>O 최적화</th></tr></thead>
+<tbody>
+<tr><td>프레임 시간 평균(300프레임)</td><td>14.13 ms · 71 fps</td><td>10.86 ms · 92 fps<span class="d g">−23%</span></td><td>13.70 ms · 73 fps<span class="d g">−3%</span></td></tr>
+<tr><td>프레임 시간 p95 / 최대</td><td>15.70 / 18.45 ms</td><td>12.80 / 14.43 ms</td><td>15.95 / 17.07 ms</td></tr>
+<tr><td>드로 콜</td><td>4,352</td><td>1,202<span class="d g">−72%</span></td><td>3,613~3,738<span class="d g">−14~17%</span></td></tr>
+<tr><td>SetPass 콜</td><td>206</td><td>75<span class="d g">−64%</span></td><td>179~182<span class="d g">−12%</span></td></tr>
+<tr><td>삼각형</td><td>1,133만</td><td>226만<span class="d g">−80%</span></td><td>763~768만<span class="d g">−32%</span></td></tr>
+<tr><td>정점</td><td>788만</td><td>151만<span class="d g">−81%</span></td><td>523~527만<span class="d g">−33%</span></td></tr>
+<tr><td>활성 조명</td><td>48</td><td>0</td><td>13<span class="d g">−73%</span></td></tr>
+<tr><td>GPU 프레임 시간</td><td>12.51 ms</td><td>4.07 ms<span class="d g">−67%</span></td><td>8.79 ms<span class="d g">−30%</span></td></tr>
+<tr><td>CPU 프레임 / 메인 스레드</td><td>12.40 / 8.96 ms</td><td>12.62 / 9.04 ms</td><td>12.65 / 9.05 ms</td></tr>
+<tr><td>프레임당 GC 할당</td><td>약 118 KB</td><td>약 118 KB</td><td>약 118 KB</td></tr>
+</tbody></table></div>
+<p class="n" style="margin-top:10px;font-size:13px">드로 콜·SetPass·삼각형의 범위 표기는 몇 초 간격으로 읽은 두 값입니다. 씬이 계속 움직이므로 값이 조금씩 변합니다. 출처: <code>get_performance_stats</code>와 게임 내 ProfilerRecorder 오버레이.</p>
+</section>
+
+<section>
+<h2>해석</h2>
+<ul>
+<li><b>프레임이 CPU에 묶여 있습니다.</b> 모든 상태에서 CPU 메인 스레드는 약 9ms로 비슷합니다. F3으로 GPU 작업을 줄이면(−67%) 프레임 시간이 줄지만, 약 12ms의 CPU 하한은 움직이지 않았습니다. O의 이득이 약 3%에 그친 이유입니다.</li>
+<li><b>조명과 포스트가 지오메트리·GPU 비용 대부분을 차지합니다.</b> 조명을 끄면 URP가 그림자 패스를 건너뛰어 드로 콜이 72%, 삼각형이 80% 줄어듭니다. 대부분 조명 48개와 캐스케이드의 섀도맵 재렌더링 비용입니다.</li>
+<li><b>O는 GPU만 줄이고 CPU는 줄이지 못했습니다.</b> 조명과 그림자 캐스터가 줄어 삼각형이 약 1/3 감소했습니다. 그래도 드로 콜이 약 3,600개 남아 CPU가 계속 바쁩니다.</li>
+<li><b>남은 가장 큰 개선(미적용):</b> 정적 배칭, GPU 인스턴싱, 맵 메시 병합으로 드로 콜을 줄이는 것입니다. CPU 병목을 직접 겨냥합니다.</li>
+</ul>
+</section>
+
+<section>
+<h2>화면</h2>
+<div class="shots">
+<figure><img src="img/base.png" alt="모든 조명과 포스트 프로세싱이 켜진 기준 화면"><figcaption>기준. 그레인, 색수차, 비네트, 블룸과 조명이 켜진 씬.</figcaption></figure>
+<figure><img src="img/f3.png" alt="F3 적용 후 조명과 포스트 프로세싱이 없는 화면"><figcaption>F3. 평면적인 무조명 화면: 스카이박스와 이미션/언릿 오브젝트만 남고, 조명을 받는 면은 검게 변하며 모든 포스트 효과가 사라집니다.</figcaption></figure>
+<figure><img src="img/opt.png" alt="O 최적화 적용 후 화면"><figcaption>O. 기준과 비슷하며, 먼 조명과 포인트/스팟 그림자가 빠져 원거리 음영이 부드럽습니다.</figcaption></figure>
+</div>
+<p class="note" style="margin-top:12px">스크린샷은 게임이 실행되는 중 서로 다른 시점에 캡처했으므로 카메라와 좀비 위치가 동일하지 않습니다.</p>
+</section>
+
+<section class="cols">
+<div>
+<h2>F3: 무엇이 꺼지나</h2>
+<h3>조명</h3>
+<ul>
+<li>모든 <code>Light</code> 컴포넌트 비활성화(씬에 48개, Directional Light 포함). 이후 생성되는 조명도 0.5초마다 찾아서 끕니다.</li>
+<li>환경광·반사 강도를 0으로 설정.</li>
+</ul>
+<h3 style="margin-top:14px">포스트 프로세싱</h3>
+<ul>
+<li>모든 <code>Volume</code> 비활성화: 비네트, Color Adjustments, 필름 그레인, 톤매핑, 색수차, 화이트 밸런스, Shadows/Midtones/Highlights, 블룸, 글로벌 볼륨.</li>
+<li>카메라 포스트 프로세싱과 안티앨리어싱 끔.</li>
+<li>화면 공간 앰비언트 오클루전(SSAO)과 ColossusGlitch 풀스크린 패스를 포함한 모든 렌더러 피처 비활성화.</li>
+</ul>
+<p style="margin-top:10px">F4는 모든 항목을 F3 이전 상태로 복원합니다.</p>
+</div>
+<div>
+<h2>O: 무엇을 최적화하나</h2>
+<h3>조명과 그림자</h3>
+<ul>
+<li>그림자 거리 45 → 25, 캐스케이드 4 → 2.</li>
+<li>메인 섀도맵 4096 → 1024, 추가 조명 섀도맵 2048 → 512.</li>
+<li>포인트/스팟 조명 그림자 제거.</li>
+<li>카메라에서 30m 넘게 떨어진 포인트/스팟 조명 비활성화(0.5초마다 재검사). 활성 조명 48 → 13.</li>
+<li>오브젝트당 추가 조명 4개로 제한, 픽셀 라이트 2개.</li>
+</ul>
+<h3 style="margin-top:14px">렌더링과 에셋</h3>
+<ul>
+<li>HDR 끔, 렌더 스케일 0.85.</li>
+<li>LOD 바이어스 0.6, 이방성 필터링 끔, 소프트 파티클 끔, 실시간 반사 프로브 끔, 2본 스키닝.</li>
+</ul>
+<h3 style="margin-top:14px">스크립트</h3>
+<ul>
+<li>애니메이터를 화면 밖에서 완전히 컬링.</li>
+<li><code>LightFlicker</code> 비활성화로 프레임마다 도는 펄린 노이즈 갱신 제거.</li>
+</ul>
+<p style="margin-top:10px">P는 모든 값을 복원합니다. P 이후 확인한 값: 그림자 거리 45, MSAA, 렌더 스케일 1, HDR 켜짐, 캐스케이드 4. 디스크의 URP 에셋은 수정되지 않았습니다(git 변경 없음).</p>
+</div>
+</section>
+
+<section>
+<h2>측정의 한계</h2>
+<ul>
+<li>Player 빌드가 아니라 에디터에서 Game 뷰 1280×720으로 측정했습니다. 에디터 오버헤드로 CPU 시간이 부풀려질 수 있으므로, 결정 전에 빌드에서 다시 측정하세요.</li>
+<li>O와 F3을 동시에 켠 조합은 측정하지 않았습니다.</li>
+<li>GPU 프레임 시간은 상태당 한 번 샘플링했고 값이 흔들렸습니다(O에서 0으로 읽힌 값 하나는 제외). GPU 수치는 대략적인 값으로 보세요.</li>
+<li>렌더 스케일 0.85와 HDR 끔은 화면을 약간 부드럽게 하고 색 범위를 바꿉니다. O의 시각적 비용입니다.</li>
+<li>드로 콜과 삼각형 수에는 그림자 패스가 포함되므로 조명을 제거하면 크게 줄어듭니다.</li>
+</ul>
+</section>
+</main>

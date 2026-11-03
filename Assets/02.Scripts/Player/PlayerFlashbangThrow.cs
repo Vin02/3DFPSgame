@@ -87,6 +87,11 @@ public class PlayerFlashbangThrow : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.IsPaused)
+        {
+            return;
+        }
+
         _cooldownTimer -= Time.deltaTime;
         UpdateReload();
 

@@ -5230,7 +5230,7 @@ MonoBehaviour:
   _comebackDistance: 220
   _attackRange: 2.5
   _attackInterval: 1.2
-  _attackDamage: 20
+  _attackDamage: 5
   _moveSpeed: 4
   _despawnDelay: 3
   _patrolPoints: []

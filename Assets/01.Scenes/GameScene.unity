@@ -5552,6 +5552,8 @@ MonoBehaviour:
   _throwBlendTime: 0.15
   _throwArmWeight: 1
   _throwEnd: 0.7
+  _meleeLayerName: Melee
+  _meleeBlendTime: 0.2
 --- !u!95 &223501241 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
@@ -7796,8 +7798,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerZoom
   _camera: {fileID: 0}
-  _normalKey: 49
-  _sniperKey: 50
   _zoomFieldOfView: 42
   _zoomSpeed: 12
 --- !u!1 &321552960
@@ -8271,14 +8271,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.008210841, y: -0.98968786, z: -0.12818675, w: -0.06339321}
-  m_LocalPosition: {x: 0, y: 2.02, z: 7.17}
+  m_LocalRotation: {x: -0.06861683, y: 0.83835983, z: 0.10858648, w: 0.5297675}
+  m_LocalPosition: {x: 0, y: 4.8, z: -2.95}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 9445355}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -14.756, y: 172.668, z: 0}
+  m_LocalEulerAnglesHint: {x: -14.76, y: 475.422, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37896,15 +37896,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: da10655671e487847b9a52d3297a2e8f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.018744214
+      value: -0.0092
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: da10655671e487847b9a52d3297a2e8f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.2061868
+      value: 0.2005
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: da10655671e487847b9a52d3297a2e8f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.04500003
+      value: 0.0606
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: da10655671e487847b9a52d3297a2e8f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -38872,7 +38872,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1
+      value: -1.013
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -38880,19 +38880,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.8822571
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.47076806
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -38900,7 +38900,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
+      value: 56.168
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d29b71095fce26e4282f9b85172416f7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -45980,7 +45980,7 @@ MonoBehaviour:
   _comebackDistance: 220
   _attackRange: 2.5
   _attackInterval: 1.2
-  _attackDamage: 20
+  _attackDamage: 5
   _moveSpeed: 4
   _despawnDelay: 3
   _patrolPoints: []
@@ -46270,7 +46270,7 @@ MonoBehaviour:
   _comebackDistance: 220
   _attackRange: 2.5
   _attackInterval: 1.2
-  _attackDamage: 20
+  _attackDamage: 5
   _moveSpeed: 4
   _despawnDelay: 3
   _patrolPoints: []
@@ -64083,7 +64083,7 @@ Transform:
   m_GameObject: {fileID: 7671977825703936551}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -0.0085}
+  m_LocalPosition: {x: -0, y: 0, z: -0.0185}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
